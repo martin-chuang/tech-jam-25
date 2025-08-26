@@ -1,5 +1,6 @@
 from app.components.presidio.presidio_engine import PresidioEngine
 
+# Anonymization function using PresidioEngine
 def presidio_anonymize(text, engine):
     engine.analyze_text(text)
     anonymized_text = engine.anonymise_text(text)
