@@ -12,7 +12,8 @@ Step 5: Ensure project can be executed (main.py)<br>
 
 ## How to run (for optimised folder setup version)
 
-cd into backend and python app.py
+cd into backend and copy .env.example to your own .env file inside backend folder<br>
+run python app.py<br>
 note that most stuff not working atm
 
 ## Version Control
