@@ -27,3 +27,12 @@ class EmbeddingModel:
             mask = inputs['attention_mask'].unsqueeze(-1)
             pooled = (last_hidden * mask).sum(1) / mask.sum(1)
             return pooled.squeeze().cpu()  # return 1D tensor
+    
+    # Embed list of documents. Compatbility function for langchain's InMemoryVectorStore
+    def embed_documents(self, texts):
+        return [self.encode(text).tolist() for text in texts]
+    
+    # Embed user query. Compatbility function for langchain's InMemoryVectorStore
+    def embed_query(self, query):
+        encoded_query = self.encode(query)
+        return encoded_query.tolist()

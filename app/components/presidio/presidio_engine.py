@@ -3,11 +3,10 @@ from rapidfuzz import fuzz
 from presidio_analyzer import AnalyzerEngine
 import re
 import uuid
-from .embedding_model import *
 
 class PresidioEngine:
     def __init__(self, model=None):
-        self.model = EmbeddingModel(backend=model) if model != None else EmbeddingModel()
+        self.model = model
         self.analyzer = AnalyzerEngine()
         self.entity_map = {}
         self.embeddings = {}  # store embeddings for fast similarity checks
