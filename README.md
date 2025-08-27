@@ -10,7 +10,7 @@ Step 5: Ensure project can be executed (main.py)<br>
 
 ## Version Control
 Step 1: Create branch from local<br>
-`git checkout branch_name`
+`git checkout branch_name`<br>
 Step 2: Make code edits<br>
 Step 3: Once done, commit and push changes to remote branch<br>
 ```
@@ -26,7 +26,7 @@ git fetch origin
 git merge origin/branch_name
 ```
 Step 5: Push new changes to remote main<br>
-`git push origin main`
+`git push origin main`<br>
 Step 6: Delete remote and main branch_name (Optional)<br>
 ```
 git branch -d branch_name
