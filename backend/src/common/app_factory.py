@@ -17,8 +17,12 @@ def setup_dependencies():
         from ..privacy.privacy_service import PrivacyService
         from ..chat.chat_service import ChatService
         from ..chat.chat_controller import ChatController
+        from ..redis.redis_service import RedisService
         
         # Register services
+        redis_service = RedisService()
+        container.register_singleton(RedisService, redis_service)
+        
         privacy_service = PrivacyService()
         container.register_singleton(PrivacyService, privacy_service)
         

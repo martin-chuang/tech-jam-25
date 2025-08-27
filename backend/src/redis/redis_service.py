@@ -4,24 +4,24 @@ import json
 import logging
 from typing import Optional, Any, Dict
 import redis
-from ..common.config import config
-from ..common.di_container import Injectable
+from ..common.config.config_loader import ConfigLoader
 
 
-class RedisService(Injectable):
+class RedisService:
     """Redis service for caching and session management."""
     
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self._client: Optional[redis.Redis] = None
+        self.config = ConfigLoader.load_config()
         self._connect()
     
     def _connect(self) -> None:
         """Establish Redis connection."""
         try:
             self._client = redis.Redis(
-                host=config.redis_host,
-                port=config.redis_port,
+                host=self.config.redis_host,
+                port=self.config.redis_port,
                 decode_responses=True,
                 socket_connect_timeout=5,
                 socket_timeout=5,
@@ -32,8 +32,8 @@ class RedisService(Injectable):
             self._client.ping()
             self.logger.info("Successfully connected to Redis")
         except Exception as e:
-            self.logger.error(f"Failed to connect to Redis: {str(e)}")
-            raise
+            self.logger.warning(f"Redis not available: {str(e)} - Running in fallback mode")
+            self._client = None
     
     def _ensure_connection(self) -> None:
         """Ensure Redis connection is alive."""
@@ -45,6 +45,10 @@ class RedisService(Injectable):
             except redis.ConnectionError:
                 self.logger.warning("Redis connection lost, reconnecting...")
                 self._connect()
+        
+        # If still no client after connection attempt, we're in fallback mode
+        if not self._client:
+            raise redis.ConnectionError("Redis not available - running in fallback mode")
     
     def get(self, key: str) -> Optional[str]:
         """Get value by key."""
