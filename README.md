@@ -19,8 +19,8 @@ Step 3: Once done, commit and push changes to remote branch<br>
 git add .
 git commit -m "Commit message"
 git push origin branch_name
-Check that changes to the branch are shown on github
 ```
+_Check that changes to the branch are shown on github_<br>
 Step 4: Go to local main branch and merge from branch_name<br>
 ```
 git checkout main
