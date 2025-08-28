@@ -12,9 +12,12 @@ Step 5: Ensure project can be executed (main.py)<br>
 
 ## How to run (for optimised folder setup version)
 
+for docker - make sure u have docker desktop<br>
+then open it and run in your terminal docker-compose --file docker-compose-dev.yml up --build<br>
+
+for local backend if dw docker run:<br>
 cd into backend and copy .env.example to your own .env file inside backend folder<br>
 run python app.py<br>
-note that most stuff not working atm
 
 ## Version Control
 
