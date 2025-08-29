@@ -3,37 +3,35 @@
 import logging
 import openai
 import os
+from typing import Generator
 
 from .dtos.request.chat_request_dto import ChatRequestDto
 from .dtos.response.chat_response_dto import ChatResponseDto
 from ..common.statemachine.chat.chat_state_machine import ChatStatus
 from ..common.statemachine.statemachine import StateMachine
-from .validators.chat_validators import create_chat_validator_chain
 
 
 class ChatService:
-    """Chat service that handles chat processing logic with state transitions."""
     
     def __init__(self, privacy_service=None):
-        """Initialize chat service with dependencies."""
         self.privacy_service = privacy_service
         self.logger = logging.getLogger(__name__)
         self.state_machine = StateMachine()
-        self.validator_chain = create_chat_validator_chain()
+        
+        # Create separate validator chains for different data types
+        from .validators.chat_validators import PromptValidator, FileValidator
+        from ..common.validators import ValidatorChain
+        
+        self.prompt_validator = ValidatorChain()
+        self.prompt_validator.add_validator(PromptValidator())
+        
+        self.file_validator = ValidatorChain()
+        self.file_validator.add_validator(FileValidator())
         
         # Initialize OpenAI
         openai.api_key = os.getenv('OPENAI_API_KEY', 'demo-key')
     
     def process_chat(self, request_dto: ChatRequestDto) -> dict:
-        """
-        Process chat request with state machine transitions.
-        
-        Args:
-            request_dto: Chat request data (contains files already)
-            
-        Returns:
-            Typed ChatResponseDto as dict
-        """
         try:
             # Initialize state
             current_state = ChatStatus.PENDING
@@ -66,19 +64,27 @@ class ChatService:
             # Return error message as string
             return "Something went wrong."
     
+    def process_chat_streaming(self, request_dto: ChatRequestDto) -> Generator[str, None, None]:
+        """
+        Process chat request with streaming thoughts via SSE.
+        This method uses the stream_thoughts module to yield state transitions.
+        """
+        from ..common.SSE.stream_thoughts import process_chat_with_thoughts
+        return process_chat_with_thoughts(self, request_dto)
+    
     def _transition_to_validated(self, request_dto: ChatRequestDto) -> str:
         """Transition to VALIDATED state using validation chain."""
         self.logger.info("State transition: PENDING → VALIDATED")
         
         # Validate prompt
-        prompt_error = self.validator_chain.validate(request_dto.prompt, 'prompt')
+        prompt_error = self.prompt_validator.validate(request_dto.prompt)
         if prompt_error:
             raise ValueError(f"Prompt validation failed: {prompt_error}")
         
         # Validate files if present
         if request_dto.files:
             for file in request_dto.files:
-                file_error = self.validator_chain.validate(file, 'file')
+                file_error = self.file_validator.validate(file)
                 if file_error:
                     raise ValueError(f"File validation failed: {file_error}")
         
@@ -86,7 +92,7 @@ class ChatService:
         return ChatStatus.VALIDATED
     
     def _transition_to_anonymised(self, request_dto: ChatRequestDto) -> tuple[str, ChatRequestDto]:
-        """Transition to ANONYMISED state - pass whole DTO."""
+        """Transition to ANONYMISED state"""
         self.logger.info("State transition: VALIDATED → ANONYMISED")
         
         anonymised_prompt = request_dto.prompt
@@ -139,7 +145,7 @@ class ChatService:
             llm_response = f"Response to: {anonymised_request.prompt}"
             if anonymised_request.files:
                 llm_response += f" (with {len(anonymised_request.files)} files)"
-            llm_response += " | This is a fallback response demonstrating proper state machine transitions."
+            llm_response += " | This is a fallback response as the call to the llm failed."
         
         return ChatStatus.PROCESSED, llm_response
     

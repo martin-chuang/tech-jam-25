@@ -10,11 +10,9 @@ chat_blueprint = Blueprint('chat', __name__)
 def process_chat():
     """Route for processing chat requests."""
     try:
-        # Get controller from DI container
         controller = container.get(ChatController)
         return controller.process_chat()
     except ValueError:
-        # Fallback if DI not available
         from flask import jsonify, g
         from datetime import datetime
         
