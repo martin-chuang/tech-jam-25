@@ -17,21 +17,9 @@ def process_chat_with_thoughts(chat_service, request_dto) -> Generator[str, None
     Yields:
         SSE formatted strings with state transition thoughts and final response
     """
-    try:
-        # Initialize state
-        yield _create_thought_event("Starting chat processing...")
-        time.sleep(0.5)
-        
-        # Step 1: Validate request
-        yield _create_thought_event("Validating files and prompt...")
-        time.sleep(1)
-        current_state = chat_service._transition_to_validated(request_dto)
-        yield _create_thought_event("Files validated!")
-        time.sleep(0.5)
-        
+    try:        
         # Step 2: Anonymise request  
         yield _create_thought_event("Anonymising prompt...")
-        time.sleep(1)
         current_state, anonymised_request = chat_service._transition_to_anonymised(request_dto)
         
         # Show anonymised prompt if different from original
@@ -39,24 +27,18 @@ def process_chat_with_thoughts(chat_service, request_dto) -> Generator[str, None
             yield _create_thought_event(f"Anonymised prompt is now: {anonymised_request.prompt}")
         else:
             yield _create_thought_event("No sensitive data detected - prompt unchanged")
-        time.sleep(0.5)
         
         # Step 3: Process with LLM
         yield _create_thought_event("LLM is thinking...")
-        time.sleep(1)
         current_state, llm_response = chat_service._transition_to_processed(anonymised_request)
         yield _create_thought_event(f"Original LLM response: {llm_response}")
-        time.sleep(0.5)
         
         # Step 4: Deanonymise response
         yield _create_thought_event("Deanonymising...")
-        time.sleep(1)
         current_state, final_response = chat_service._transition_to_deanonymised(llm_response)
         
         # Step 5: Success
         current_state = chat_service._transition_to_success()
-        yield _create_thought_event("Success!")
-        time.sleep(0.5)
         
         # Final response - this is what the frontend will use as the actual answer
         yield _create_final_response_event(final_response)
