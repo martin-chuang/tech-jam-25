@@ -5,9 +5,20 @@ from app.components.rag.rag_engine import RAGEngine
 from app.service.presidio_service import presidio_anonymize
 from app.service.rag_service import *
 
-# Initialize cloud LLM (currently using local Ollama model)
-from langchain_ollama import ChatOllama
-cloud_llm = ChatOllama(model="phi3:latest")
+# # Initialize cloud LLM (currently using local Ollama model)
+# from langchain_ollama import ChatOllama
+# cloud_llm = ChatOllama(model="phi3:latest")
+
+# Initialise cloud LLM Gemini
+from dotenv import load_dotenv
+import os
+# Load environment variables from .env file and set api key to environment variable
+load_dotenv()
+
+from langchain.chat_models import init_chat_model
+os.environ['GOOGLE_API_KEY'] = os.getenv("GOOGLE_API_KEY")
+cloud_llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
+cloud_llm.invoke("Sing a ballad of LangChain.")
 
 # Dependency Injection
 embedding_model = EmbeddingModel(backend="mini-lm")
@@ -24,6 +35,19 @@ def hello_world():
     }
     return jsonify(response), 200
 
+@app.route('/test-llm', methods=['POST'])
+def test_llm():
+    data = request.json
+    prompt = data.get("body", "")
+    # response = cloud_llm.invoke(prompt)
+    response = cloud_llm.invoke("Hello world, this is a test. Just reply with 'Hello from Gemini'.")
+    print(response)
+    result = {
+        "status": "success",
+        "body": response.content
+    }
+    return jsonify(result), 200
+
 @app.route('/anonymize', methods=['POST'])
 def anonymize_text():
     data = request.json
@@ -39,7 +63,9 @@ def anonymize_text():
 def consume_context():
     data = request.json
     text = data.get("body", "")
-    # text = "His name is Mr. Jones, Jones Bond and his phone number is 212-555-5555. Jones is friends with Martin."
+    # text = "His name is Mr. Jones, Jones Bond and his phone number is 212-555-5555."
+    # text = "Jones is friends with Martin."
+    # text = "Jones likes to play football on 5th avenue."
     doc = text_to_document(text, rag_engine)
     add_to_vector_db(doc, rag_engine)
     response = {

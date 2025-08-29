@@ -82,3 +82,10 @@ class PresidioEngine:
         self.entity_map[new_key] = {"canonical": text, "aliases": [text]}
         self.embeddings[new_key] = new_emb
         return new_key
+    
+    def de_anonymise_text(self, text):
+        # Replace keys with canonical entity names
+        for key, data in self.entity_map.items():
+            pattern = r"\b" + re.escape(key) + r"\b"
+            text = re.sub(pattern, data["canonical"], text)
+        return text
