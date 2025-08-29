@@ -31,7 +31,7 @@ class RAGEngine:
 
     # Node 1: Retrieve relevant documents based on a query. Output = Document[]
     def retrieve_context(self, state: State):
-        retrieved_docs = self.vector_store.similarity_search(state["question"], k = 5)
+        retrieved_docs = self.vector_store.similarity_search(state["question"], k = 2)
         return {"context": retrieved_docs}
     
     # Node 2: Generate response based on question and context
