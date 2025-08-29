@@ -10,6 +10,8 @@ def retrieve_context(query, engine):
     state: State = {"question": query}
     return engine.retrieve_context(state)
 
+"""
 def invoke_conversation(query, engine):
     state: State = {"question": query}
     return engine.invoke_conversation(state)
+"""
