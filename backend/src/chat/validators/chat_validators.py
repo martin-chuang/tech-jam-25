@@ -110,20 +110,34 @@ def create_chat_validator_chain() -> ValidatorChain:
 class PromptValidator(BaseValidator):
     """Validator for chat prompts."""
     
+    def __init__(self, required: bool = True):
+        """
+        Initialize prompt validator.
+        
+        Args:
+            required: Whether prompt is required. If False, empty prompts are allowed.
+        """
+        self.required = required
+    
     def handle_validation(self, data: str) -> Optional[str]:
-        if not data:
+        # If prompt is not required and data is empty, allow it
+        if not self.required and (not data or not data.strip()):
+            return None
+            
+        # If prompt is required, apply standard validation
+        if self.required and not data:
             return "Prompt is required"
         
-        if not isinstance(data, str):
+        if data and not isinstance(data, str):
             return "Prompt must be a string"
         
-        if not data.strip():
+        if self.required and not data.strip():
             return "Prompt cannot be empty"
         
-        if len(data.strip()) < 3:
+        if data and len(data.strip()) < 3:
             return "Prompt must be at least 3 characters"
         
-        if len(data) > 10000:
+        if data and len(data) > 10000:
             return "Prompt cannot exceed 10,000 characters"
         
         return None

@@ -2,11 +2,11 @@
 
 import logging
 import re
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from ..common.utils.retry_utils import RetryUtils
 
-# NEED TO REPLACE AND INTEGRATE WITH ML LOGIC
+# NEED TO REPLACE AND INTEGRATE WITH ML LOGIC but keep same function
 class PrivacyService:
     """Service for handling privacy operations like anonymisation."""
     
@@ -16,108 +16,101 @@ class PrivacyService:
         self._pii_mappings: Dict[str, str] = {}
         self._anonymization_counter = 0
     
-    def anonymise_text_with_retry(self, text: str) -> Optional[str]:
-        """Anonymise text with retry logic."""
-        return RetryUtils.retry_with_backoff(
-            func=lambda: self.anonymise_text(text),
-            max_retries=3,
-            base_delay=1.0
-        )
+    def transition_anonymise(self, prompt: str, file_content: str = "") -> Tuple[str, str]:
+        """
+        Transition function for anonymisation step.
+        
+        Args:
+            prompt: User prompt text
+            file_content: Markdown content from files
+            
+        Returns:
+            Tuple of (anonymised_prompt, anonymised_file_content)
+        """
+        combined_text = f"{prompt}\n\n{file_content}" if file_content else prompt
+        anonymised_combined = self.anonymise_text_with_retry(combined_text)
+        
+        if not anonymised_combined:
+            self.logger.warning("Anonymisation failed, using original text")
+            return prompt, file_content
+        
+        # Split back into prompt and file content
+        if file_content:
+            parts = anonymised_combined.split('\n\n', 1)
+            if len(parts) == 2:
+                return parts[0], parts[1]
+            else:
+                return anonymised_combined, ""
+        else:
+            return anonymised_combined, ""
     
-    def deanonymise_text_with_retry(self, text: str) -> Optional[str]:
-        """Deanonymise text with retry logic."""
-        return RetryUtils.retry_with_backoff(
-            func=lambda: self.deanonymise_text(text),
-            max_retries=3,
-            base_delay=1.0
-        )
+    def transition_process(self, anonymised_prompt: str, anonymised_file_content: str = "") -> List[Dict]:
+        """
+        Transition function for processing step.
+        This simulates the privacy service processing and returns the expected list format.
         
-        for attempt in range(self.max_retries):
-            try:
-                return self.deanonymise_text(text)
-            except Exception as e:
-                self.logger.warning(
-                    f"Deanonymisation attempt {attempt + 1} failed: {str(e)}"
-                )
-                if attempt < self.max_retries - 1:
-                    delay = self.retry_delay_base * (2 ** attempt) + random.uniform(0, 1)
-                    time.sleep(delay)
+        Args:
+            anonymised_prompt: Anonymised prompt
+            anonymised_file_content: Anonymised file content
+            
+        Returns:
+            List of conversation messages in the expected format
+        """
+        # Simulate processing - in real implementation this would call the actual ML pipeline
+        combined_content = f"{anonymised_prompt}\n\n{anonymised_file_content}" if anonymised_file_content else anonymised_prompt
         
-        return None
+        # Mock response format as specified
+        llm_response = [
+            {
+                "content": anonymised_prompt,
+                "role": "human"
+            },
+            {
+                "content": "",
+                "role": "ai"
+            },
+            {
+                "content": f"Source: {{'source': 'user_input'}}\nContent: {combined_content}",
+                "role": "tool"
+            },
+            {
+                "content": f"Based on your input: {combined_content}\n\n.",
+                "role": "ai"
+            }
+        ]
+        
+        return llm_response
     
-    def anonymise_text(self, text: str) -> str:
-        """Anonymise PII in text."""
-        if not text:
-            return text
+    def transition_deanonymise(self, llm_response: List[Dict]) -> str:
+        """
+        Transition function for deanonymisation step.
         
-        anonymised_text = text
+        Args:
+            llm_response: List of conversation messages from privacy service
+            
+        Returns:
+            Final deanonymised response string
+        """
+        # Extract content from the last item in the list
+        if not llm_response or len(llm_response) == 0:
+            self.logger.warning("Empty response list received")
+            return "No response generated."
         
-        # Email pattern
-        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        anonymised_text = self._replace_with_placeholder(
-            anonymised_text, email_pattern, 'EMAIL'
-        )
+        # Get the last item in the list
+        last_message = llm_response[-1]
         
-        # Phone pattern (simple US format)
-        phone_pattern = r'\b\d{3}-\d{3}-\d{4}\b|\b\(\d{3}\)\s*\d{3}-\d{4}\b'
-        anonymised_text = self._replace_with_placeholder(
-            anonymised_text, phone_pattern, 'PHONE'
-        )
+        # Extract the content from the last message
+        final_ai_content = last_message.get("content", "")
         
-        # SSN pattern
-        ssn_pattern = r'\b\d{3}-\d{2}-\d{4}\b'
-        anonymised_text = self._replace_with_placeholder(
-            anonymised_text, ssn_pattern, 'SSN'
-        )
+        if not final_ai_content:
+            self.logger.warning("No content found in last message of response")
+            return "No response generated."
         
-        # Credit card pattern (basic)
-        cc_pattern = r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b'
-        anonymised_text = self._replace_with_placeholder(
-            anonymised_text, cc_pattern, 'CREDIT_CARD'
-        )
+        # Deanonymise the content
+        deanonymised_response = self.deanonymise_text_with_retry(final_ai_content)
         
-        # Name pattern (very basic - proper nouns)
-        name_pattern = r'\b[A-Z][a-z]+\s+[A-Z][a-z]+\b'
-        anonymised_text = self._replace_with_placeholder(
-            anonymised_text, name_pattern, 'NAME'
-        )
+        if not deanonymised_response:
+            self.logger.warning("Deanonymisation failed, using original content")
+            return final_ai_content
         
-        self.logger.debug(f"Anonymised text: {len(self._pii_mappings)} PII items replaced")
-        return anonymised_text
-    
-    def deanonymise_text(self, text: str) -> str:
-        """Deanonymise text by replacing placeholders with original values."""
-        if not text or not self._pii_mappings:
-            return text
-        
-        deanonymised_text = text
-        
-        # Replace placeholders with original values
-        for placeholder, original in self._pii_mappings.items():
-            deanonymised_text = deanonymised_text.replace(placeholder, original)
-        
-        self.logger.debug(f"Deanonymised text: {len(self._pii_mappings)} PII items restored")
-        return deanonymised_text
-    
-    def _replace_with_placeholder(self, text: str, pattern: str, pii_type: str) -> str:
-        """Replace PII matches with placeholders and store mapping."""
-        matches = re.finditer(pattern, text)
-        result = text
-        
-        for match in matches:
-            original_value = match.group()
-            placeholder = f"[{pii_type}_{self._anonymization_counter}]"
-            self._pii_mappings[placeholder] = original_value
-            result = result.replace(original_value, placeholder, 1)
-            self._anonymization_counter += 1
-        
-        return result
-    
-    def clear_mappings(self) -> None:
-        """Clear PII mappings (useful for new sessions)."""
-        self._pii_mappings.clear()
-        self._anonymization_counter = 0
-    
-    def get_mapping_count(self) -> int:
-        """Get the number of PII mappings."""
-        return len(self._pii_mappings)
+        return deanonymised_response
