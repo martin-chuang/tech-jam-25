@@ -50,7 +50,8 @@ export const useFileUpload = () => {
           name: file.name,
           size: file.size,
           type: file.type,
-          data,
+          data: file, // Keep the original File object for FormData sending
+          content: data, // Store the processed content separately
         }
 
         newFiles.push(uploadedFile)

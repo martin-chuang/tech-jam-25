@@ -58,12 +58,16 @@ def process_chat_with_thoughts(chat_service, request_dto) -> Generator[str, None
         yield _create_thought_event("Success!")
         time.sleep(0.5)
         
-        # Final response - this is what the frontend will use as the actual answer
-        yield _create_final_response_event(final_response)
+        # Final response - stream the response content
+        yield _create_content_event(final_response)
+        
+        # Send done signal
+        yield "data: [DONE]\n\n"
         
     except Exception as e:
         chat_service._transition_to_failure()
         yield _create_error_event(f"Error: {str(e)}")
+        yield "data: [DONE]\n\n"
 
 def _create_thought_event(message: str) -> str:
     """Create SSE event for thought/state update."""
@@ -79,6 +83,14 @@ def _create_final_response_event(response: str) -> str:
     event_data = {
         "type": "final_response", 
         "response": response,
+        "timestamp": datetime.now().isoformat()
+    }
+    return f"data: {json.dumps(event_data)}\n\n"
+
+def _create_content_event(content: str) -> str:
+    """Create SSE event for content (expected by frontend)."""
+    event_data = {
+        "content": content,
         "timestamp": datetime.now().isoformat()
     }
     return f"data: {json.dumps(event_data)}\n\n"

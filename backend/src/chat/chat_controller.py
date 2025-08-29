@@ -20,46 +20,57 @@ class ChatController:
     def process_chat(self):
         """
         Handle POST /api/v1/chat endpoint.
-        Detects if client wants streaming via Accept header.
+        Handles both JSON and FormData requests.
+        Always returns SSE stream (as expected by frontend).
         
         Returns:
-            JSON response for regular requests or SSE stream for streaming requests
+            SSE stream response
         """
         correlation_id = getattr(g, 'correlation_id', 'unknown')
         
         try:
             self.logger.info(f"[{correlation_id}] Received chat request")
-            data = request.get_json() or {}
-            prompt = data.get('prompt', '').strip()
             
-            files_data = data.get('files', [])
-            
-            request_dto = ChatRequestDto(prompt=prompt, files=files_data)
-            
-            accept_header = request.headers.get('Accept', '')
-            if 'text/event-stream' in accept_header:
-                # Return streaming response
-                self.logger.info(f"[{correlation_id}] Processing as streaming request")
-                stream_generator = self.chat_service.process_chat_streaming(request_dto)
+            # Handle FormData (multipart) or JSON requests
+            if request.content_type and 'multipart/form-data' in request.content_type:
+                # FormData request from frontend
+                prompt = request.form.get('message', '').strip()
+                sessionId = request.form.get('sessionId', '')
+                files = []
                 
-                return Response(
-                    stream_with_context(stream_generator),
-                    mimetype='text/event-stream',
-                    headers={
-                        'Cache-Control': 'no-cache',
-                        'Connection': 'keep-alive',
-                        'X-Accel-Buffering': 'no'
-                    }
-                )
+                # Extract files from FormData
+                for key in request.files:
+                    if key.startswith('file-'):
+                        files.append(request.files[key])
+                
+                self.logger.info(f"[{correlation_id}] FormData request - prompt: {prompt[:50]}..., files: {len(files)}")
+                
             else:
-                self.logger.info(f"[{correlation_id}] Processing as regular request")
-                deanonymised_response = self.chat_service.process_chat(request_dto)
+                # JSON request (fallback)
+                data = request.get_json() or {}
+                prompt = data.get('prompt', '').strip()
+                sessionId = data.get('sessionId', '')
+                files = data.get('files', [])
                 
-                response_dto = ChatResponseDto(response=deanonymised_response)
-                
-                return jsonify({
-                    "response": response_dto.response
-                }), 200
+                self.logger.info(f"[{correlation_id}] JSON request - prompt: {prompt[:50]}...")
+            
+            request_dto = ChatRequestDto(prompt=prompt, files=files)
+            
+            # Always return streaming response (as frontend expects SSE)
+            self.logger.info(f"[{correlation_id}] Processing as streaming request")
+            stream_generator = self.chat_service.process_chat_streaming(request_dto)
+            
+            return Response(
+                stream_with_context(stream_generator),
+                mimetype='text/event-stream',
+                headers={
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive',
+                    'X-Accel-Buffering': 'no',
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                }
+            )
             
         except Exception as e:
             self.logger.error(f"[{correlation_id}] Error processing chat: {str(e)}")
