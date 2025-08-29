@@ -2,8 +2,10 @@ from flask import Flask, request, jsonify
 from app.components.embedding_model.embedding_model import EmbeddingModel
 from app.components.presidio.presidio_engine import PresidioEngine
 from app.components.rag.rag_engine import RAGEngine
+from app.components.homomorphic_encryption.encryption_engine import HEManager
 from app.service.presidio_service import presidio_anonymize
 from app.service.rag_service import *
+from app.service.anonymize_encryptor_service import anonymize_and_encrypt
 
 # # Initialize cloud LLM (currently using local Ollama model)
 # from langchain_ollama import ChatOllama
@@ -24,6 +26,7 @@ cloud_llm.invoke("Sing a ballad of LangChain.")
 embedding_model = EmbeddingModel(backend="mini-lm")
 presidio_engine = PresidioEngine(embedding_model)
 rag_engine = RAGEngine(embedding_model, cloud_llm)
+encryption_engine = HEManager()
 app = Flask(__name__)
 
 # API endpoints
@@ -48,14 +51,15 @@ def test_llm():
     }
     return jsonify(result), 200
 
-@app.route('/anonymize', methods=['POST'])
-def anonymize_text():
+@app.route('/anonymize_encrypt', methods=['POST'])
+def anonymize_and_encrypt_text():
     data = request.json
     text = data.get("body", "")
     anonymized_text = presidio_anonymize(text, presidio_engine) # Execute service layer
+    encrypted_text = encryption_engine.encrypt(anonymized_text)
     response = {
         "status": "success",
-        "body": anonymized_text
+        "body": encrypted_text
     }
     return jsonify(response), 200
 
@@ -66,7 +70,9 @@ def consume_context():
     # text = "His name is Mr. Jones, Jones Bond and his phone number is 212-555-5555."
     # text = "Jones is friends with Martin."
     # text = "Jones likes to play football on 5th avenue."
-    doc = text_to_document(text, rag_engine)
+
+    processed_text = anonymize_and_encrypt(text)
+    doc = text_to_document(processed_text, rag_engine)
     add_to_vector_db(doc, rag_engine)
     response = {
         "status": "success",
@@ -79,12 +85,15 @@ def query_model():
     data = request.json
     query = data.get("body", "")
     # query = "What is Jones' phone number?"
-    state = invoke_conversation(query, rag_engine)
+    context = retrieve_context(query, rag_engine)
+    decrypted_context = encryption_engine.decrypt(context)
+    state = cloud_llm.invoke_conversation(decrypted_context)
+    
     print(f"""
           Question: {query}\n
           Answer: {state['answer']}\n
           Context: {state['context']}
-""")
+    """)
     response = {
         "status": "success",
         "body": state['answer']
