@@ -1,12 +1,12 @@
 services:
-  app:
+  rag-llm:
     build:
       context: .
       dockerfile: ./app/Dockerfile
-    container_name: llm-con-test
+    container_name: llm-con
     env_file: .env
     ports:
-      - "5050:5000"
+      - "5050:5050"
     volumes:
       - ./app:/app/app
       - ./main.py:/app/main.py
