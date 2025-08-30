@@ -1,8 +1,8 @@
-# PromptGuard - TikTok Tech Jam 2025
+# SafeGenAI - TikTok Tech Jam 2025
 
 ## Project Overview
 
-**PromptGuard** is an advanced privacy-preserving AI chat application designed to address the growing concerns about data privacy and security in AI systems. Built for the TikTok Tech Jam 2025 under Topic 7: Privacy for AI, PromptGuard implements cutting-edge privacy-preserving techniques to ensure user data remains secure while providing powerful AI-driven conversational capabilities.
+**SafeGenAI** is an advanced privacy-preserving AI chat application designed to address the growing concerns about data privacy and security in AI systems. Built for the TikTok Tech Jam 2025 under Topic 7: Privacy for AI, SafeGenAI implements cutting-edge privacy-preserving techniques to ensure user data remains secure while providing powerful AI-driven conversational capabilities.
 
 ### Problem Statement
 
@@ -10,7 +10,7 @@ As AI technologies rapidly integrate into our daily lives, concerns about privac
 
 ### Features and Functionality
 
-PromptGuard addresses privacy concerns through multiple layers of protection:
+SafeGenAI addresses privacy concerns through multiple layers of protection:
 
 **Data Privacy & Anonymization**
 
@@ -145,7 +145,7 @@ PromptGuard addresses privacy concerns through multiple layers of protection:
 - **Requests 2.32.5** - HTTP client library
 - **RapidFuzz 3.13.0** - Fast string matching
 
-PromptGuard represents a comprehensive solution to AI privacy challenges, combining state-of-the-art privacy-preserving technologies with user-friendly design to create a secure and efficient AI chat experience.
+SafeGenAI represents a comprehensive solution to AI privacy challenges, combining state-of-the-art privacy-preserving technologies with user-friendly design to create a secure and efficient AI chat experience.
 
 ## How it works
 
@@ -153,11 +153,11 @@ To be filled up
 
 ## Future Deployment Plans
 
-PromptGuard is designed with scalability and enterprise deployment in mind. The following cloud infrastructure architecture demonstrates our planned production deployment strategy using AWS services across multiple availability zones for high availability and security.
+SafeGenAI is designed with scalability and enterprise deployment in mind. The following cloud infrastructure architecture demonstrates our planned production deployment strategy using AWS services across multiple availability zones for high availability and security.
 
 ![Cloud Infrastructure Architecture](./cloud-architecture.PNG)
 
-The proposed AWS architecture leverages a multi-tier approach with dedicated security zones. User traffic flows through CloudFront CDN and Route 53 for global distribution and DNS management. The application layer utilizes ECS with Application Load Balancers (ALB) across multiple availability zones (AZ1 and AZ2) for fault tolerance. Critical components include EFS for shared file storage, Bedrock for AI model hosting, and comprehensive security measures with IAM identity management, CloudWatch monitoring, CloudTrail audit logging, and GuardDuty threat detection. This infrastructure ensures PromptGuard can scale to handle enterprise workloads while maintaining the highest standards of data privacy and security. They are also isolated in different subnets and the ALB will have ingress and egress access to the internet via the internet gateway through a public subnet and the private subnets will communicate between themselves via respective interface endpoints or the NAT gateway if the components need to update their packages.
+The proposed AWS architecture leverages a multi-tier approach with dedicated security zones. User traffic flows through CloudFront CDN and Route 53 for global distribution and DNS management. The application layer utilizes ECS with Application Load Balancers (ALB) across multiple availability zones (AZ1 and AZ2) for fault tolerance. Critical components include EFS for shared file storage, Bedrock for AI model hosting, and comprehensive security measures with IAM identity management, CloudWatch monitoring, CloudTrail audit logging, and GuardDuty threat detection. This infrastructure ensures SafeGenAI can scale to handle enterprise workloads while maintaining the highest standards of data privacy and security. They are also isolated in different subnets and the ALB will have ingress and egress access to the internet via the internet gateway through a public subnet and the private subnets will communicate between themselves via respective interface endpoints or the NAT gateway if the components need to update their packages.
 
 ## API Documentation
 
