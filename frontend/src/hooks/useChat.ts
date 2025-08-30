@@ -185,6 +185,24 @@ export const useChat = () => {
                   return;
                 }
 
+                if (parsed.type === "thought" && parsed.message) {
+                  setSessions(prev => prev.map(session => {
+                    if (session.id === currentSession.id) {
+                      return {
+                        ...session,
+                        messages: session.messages.map(msg => {
+                          if (msg.id === assistantMessageId) {
+                            const thoughts = msg.thoughts ? [...msg.thoughts, parsed.message] : [parsed.message];
+                            return { ...msg, thoughts };
+                          }
+                          return msg;
+                        })
+                      };
+                    }
+                    return session;
+                  }));
+                }
+
                 if (parsed.content) {
                   accumulatedContent += parsed.content;
                   updateMessage(currentSession.id, assistantMessageId, {

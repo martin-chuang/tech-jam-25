@@ -6,6 +6,7 @@ export interface ChatMessage {
   files?: UploadedFile[]
   isStreaming?: boolean
   error?: string
+  thoughts?: string[]
 }
 
 export interface UploadedFile {
