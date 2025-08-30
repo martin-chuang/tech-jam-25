@@ -7,6 +7,7 @@ from app.components.homomorphic_encryption.encryption_engine import HEManager
 from app.service.presidio_service import presidio_anonymize
 from app.service.rag_service import *
 from app.service.anonymize_encryptor_service import AnonymizeEncryptor
+import base64
 
 # Initialize cloud LLM (currently using local Ollama model)
 # from langchain_ollama import ChatOllama
@@ -23,7 +24,6 @@ from langchain.chat_models import init_chat_model
 
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 cloud_llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
-cloud_llm.invoke("Sing a ballad of LangChain.")
 
 # Dependency Injection
 embedding_model = EmbeddingModel(backend="mini-lm")
@@ -83,14 +83,18 @@ def consume_context():
 @app.route("/query-model", methods=["POST"])
 def query_model():
     data = request.json
-    query = data.get("body", "")
+    context = data.get("context", "")
+    query = data.get("query", "")
+    print(" Main.py query:", query)
+    print(" Main.py context:", context)
+    message_chain = query_model_final(query, context)
 
-    # Retrieve context
-    state: State = {"question": query}
-    context = rag_engine.retrieve_context(state)
-    # context = retrieve_context(query, rag_engine)
-    decrypted_context = encryption_engine.decrypt(context)
-    message_chain = rag_engine.query_model(query, decrypted_context)
+    # # Retrieve context
+    # state: State = {"question": query}
+    # context = rag_engine.retrieve_context(state)
+    # # context = retrieve_context(query, rag_engine)
+    # decrypted_context = encryption_engine.decrypt(context)
+    # message_chain = rag_engine.query_model(query, decrypted_context)
     return message_chain, 200
 
 
@@ -99,28 +103,54 @@ def query_model_final(query, context):
     # Preprocess context
     presidio_engine.analyze_text(context)
     anonymized_context = presidio_engine.anonymise_text(context)
+    print(" Main.py anonymized_context:", anonymized_context)
     encrypted_context = encryption_engine.encrypt(anonymized_context)
+    print(" Main.py encrypted_context:", encrypted_context[:10])
+    encrypted_context_str = base64.b64encode(encrypted_context).decode("utf-8")  # convert to string
     # Store encrypted context in vector DB
-    doc = rag_engine.text_to_document(encrypted_context)
+    doc = rag_engine.text_to_document(encrypted_context_str)
     rag_engine.store_documents([doc])
 
     # Preprocess query
     presidio_engine.analyze_text(query)
     anonymized_query = presidio_engine.anonymise_text(query)
+    print("Main.py anonymized_query:", anonymized_query)
     encrypted_query = encryption_engine.encrypt(anonymized_query)
+    print("Main.py encrypted_query:", encrypted_query[:10])
+    encrypted_query_str = base64.b64encode(encrypted_query).decode("utf-8")  # convert to string
 
     # Retrieve encrypted context
-    state: State = {"question": encrypted_query}
-    context = rag_engine.retrieve_context(state)
+    # state: State = {"question": encrypted_query}
+    serialized, retrieved_docs = rag_engine.retrieve_context(encrypted_query_str)
+    print("Main.py retrieved encrypted context:", serialized[:100])
+
+    # retrieved_context_list = []
+    # for doc in retrieved_docs:
+    #     retrieved_context = {}
+    #     decrypted_context = encryption_engine.decrypt(doc.page_content)
+    #     retrieved_context["source"] = doc.metadata['source']
+    #     retrieved_context["text"] = doc.page_content
+    #     retrieved_context_list.append(retrieved_context)
+
+    serialized_decrypted_context = ",".join(
+        (
+            "{{source: {}, text: {}}}".format(
+                doc.metadata["source"], encryption_engine.decrypt(base64.b64decode(doc.page_content))
+            )
+        )
+        for doc in retrieved_docs
+    )
+    serialized_decrypted_context = "[" + serialized + "]"
 
     # Decrypt context (anonymized)
-    decrypted_context = encryption_engine.decrypt(context)
+    # decrypted_context = encryption_engine.decrypt(serialized)
+    print(" Main.py decrypted_context:", serialized[:100])
 
     # Query model with decrypted context (both uses anonymized data)
-    message_chain = llm_engine.query_model(anonymized_query, decrypted_context)
+    message_chain = llm_engine.query_model(anonymized_query, serialized_decrypted_context)
     print("\n Main.py message_chain:", message_chain)
     return message_chain
 
 
 if (__name__) == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port = 5000, debug=True)
