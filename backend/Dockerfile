@@ -9,6 +9,14 @@ RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
+    build-essential \
+    cmake \
+    make \
+    git \
+    libomp-dev \
+    libgmp-dev \
+    libmpfr-dev \
+    libmpc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment

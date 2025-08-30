@@ -24,7 +24,7 @@ class RAGEngine:
         self.memory = MemorySaver()
         self.tools = self.initialize_tools()
         # self.llm = create_react_agent(llm, self.tools, checkpointer=self.memory)
-        self.agent_llm = create_react_agent(llm, self.tools, checkpointer=self.memory)
+        # self.agent_llm = create_react_agent(llm, self.tools, checkpointer=self.memory)
         self.prompt_template = hub.pull("rlm/rag-prompt")
         self.vector_store = InMemoryVectorStore(embedding_model)
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
