@@ -99,16 +99,16 @@ def query_model():
 @app.route('/query-model-final', methods=['POST'])
 def query_model_final(query, context):
     # Preprocess context
-    rag_engine.analyze_text(context)
-    anonymized_context = rag_engine.anonymise_text(context)
+    presidio_engine.analyze_text(context)
+    anonymized_context = presidio_engine.anonymise_text(context)
     encrypted_context = encryption_engine.encrypt(anonymized_context)
         # Store encrypted context in vector DB
     doc = rag_engine.text_to_document(encrypted_context)
     rag_engine.store_documents([doc])
 
     # Preprocess query
-    rag_engine.analyze_text(query)
-    anonymized_query = rag_engine.anonymise_text(query)
+    presidio_engine.analyze_text(query)
+    anonymized_query = presidio_engine.anonymise_text(query)
     encrypted_query = encryption_engine.encrypt(anonymized_query)
 
     # Retrieve encrypted context

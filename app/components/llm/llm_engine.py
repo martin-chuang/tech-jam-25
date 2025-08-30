@@ -106,6 +106,7 @@ class LLMEngine:
         print("\nQUESTION:", question)
         print("\nCONTEXT:", context)
         print("\nconversation_messages:", conversation_messages)
+        # prompt = GENERATE_PROMPT.format(question=question, context=context)
         prompt = GENERATE_PROMPT.format(question=question, context=conversation_messages)
         response = self.llm.invoke([{"role": "user", "content": prompt}])
         return {"messages": [response]}

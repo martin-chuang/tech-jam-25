@@ -20,15 +20,15 @@ class State(TypedDict):
 
 class RAGEngine:
     def __init__(self, embedding_model, llm):
-        self.llm = llm
-        self.memory = MemorySaver()
-        self.tools = self.initialize_tools()
+        # self.llm = llm
+        # self.memory = MemorySaver()
+        # self.tools = self.initialize_tools()
         # self.llm = create_react_agent(llm, self.tools, checkpointer=self.memory)
         # self.agent_llm = create_react_agent(llm, self.tools, checkpointer=self.memory)
-        self.prompt_template = hub.pull("rlm/rag-prompt")
+        # self.prompt_template = hub.pull("rlm/rag-prompt")
         self.vector_store = InMemoryVectorStore(embedding_model)
         self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-        self.graph = self.initialize_graph()
+        # self.graph = self.initialize_graph()
 
     # Initialise graph with nodes and edges
     def initialize_graph(self):
@@ -177,32 +177,32 @@ class RAGEngine:
         message_chain[-1]["tokens"] = tokens  # Add tokens info at the end of the chain
         return message_chain
     
-    def query_agent_model(self, query):
-        message_chain = []
-        config = {"configurable": {"thread_id": "abc123"}}
-        tokens = 0
-        for step in self.agent_llm.stream(
-            {"messages": [{"role": "user", "content": query}]},
-            stream_mode="values",
-            config=config
-        ):
-            message = step["messages"][-1]
-            content = message.content
-            if message.type == "ai":
-                if message.tool_calls:
-                    content = ",".join(
-                        ("{{tool: {}, query: {}}}".format(tool['name'], tool['args']['query']))
-                        for tool in message.tool_calls
-                    )
-                    content = "[" + content + "]"
-                if message.usage_metadata and 'total_tokens' in message.usage_metadata:
-                    tokens += message.usage_metadata['total_tokens']
-                    print("Tokens used in this step:", message.usage_metadata['total_tokens'])
-                    print("Total tokens so far:", tokens)
+    # def query_agent_model(self, query):
+    #     message_chain = []
+    #     config = {"configurable": {"thread_id": "abc123"}}
+    #     tokens = 0
+    #     for step in self.agent_llm.stream(
+    #         {"messages": [{"role": "user", "content": query}]},
+    #         stream_mode="values",
+    #         config=config
+    #     ):
+    #         message = step["messages"][-1]
+    #         content = message.content
+    #         if message.type == "ai":
+    #             if message.tool_calls:
+    #                 content = ",".join(
+    #                     ("{{tool: {}, query: {}}}".format(tool['name'], tool['args']['query']))
+    #                     for tool in message.tool_calls
+    #                 )
+    #                 content = "[" + content + "]"
+    #             if message.usage_metadata and 'total_tokens' in message.usage_metadata:
+    #                 tokens += message.usage_metadata['total_tokens']
+    #                 print("Tokens used in this step:", message.usage_metadata['total_tokens'])
+    #                 print("Total tokens so far:", tokens)
                 
-            message_chain.append({
-                "role": message.type,     # e.g. "human", "ai", "tool"
-                "content": content
-            })
-        message_chain[-1]["tokens"] = tokens  # Add tokens info at the end of the chain
-        return message_chain
+    #         message_chain.append({
+    #             "role": message.type,     # e.g. "human", "ai", "tool"
+    #             "content": content
+    #         })
+    #     message_chain[-1]["tokens"] = tokens  # Add tokens info at the end of the chain
+    #     return message_chain
