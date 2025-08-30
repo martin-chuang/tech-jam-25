@@ -147,7 +147,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           )}
           aria-label="Send message"
         >
-          <span className="text-xl">📝</span>
+          Send
         </button>
       </form>
     </div>
