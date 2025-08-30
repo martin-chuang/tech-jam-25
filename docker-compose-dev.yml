@@ -64,24 +64,23 @@ services:
     restart: unless-stopped
     command: redis-server --appendonly yes
 
-  # Frontend (if needed later)
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #     dockerfile: Dockerfile.dev
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./frontend:/app
-  #     - /app/node_modules
-  #   environment:
-  #     - REACT_APP_API_URL=http://localhost:5000/api/v1
-  #     - CHOKIDAR_USEPOLLING=true
-  #   depends_on:
-  #     - backend
-  #   networks:
-  #     - tiktok-network
-  #   restart: unless-stopped
+  # Frontend with Vite
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - tiktok-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:

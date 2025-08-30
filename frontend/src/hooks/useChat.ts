@@ -160,8 +160,15 @@ export const useChat = () => {
             try {
               const parsed = JSON.parse(data)
               
-              if (parsed.error) {
-                throw new Error(parsed.error)
+              if (parsed.error || parsed.type === 'error') {
+                const errorMessage = parsed.message || parsed.error || 'An error occurred'
+                // Display error message in the chat bubble
+                updateMessage(currentSession.id, assistantMessageId, {
+                  content: '',
+                  error: errorMessage,
+                  isStreaming: false,
+                })
+                return
               }
               
               if (parsed.content) {
