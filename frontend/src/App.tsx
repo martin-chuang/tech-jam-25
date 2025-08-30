@@ -46,7 +46,7 @@ export default function App() {
         <ChatWindow
           messages={activeSession?.messages || []}
           isLoading={isLoading}
-          onSendMessage={sendMessage}
+          onSendMessage={(message, context, files) => sendMessage(message, context, files)}
           onStopGeneration={stopGeneration}
           className="lg:pl-0 pl-0"
         />
