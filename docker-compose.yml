@@ -51,6 +51,7 @@ services:
     networks:
       - tiktok-network
     restart: unless-stopped
+  
   rag-llm:
     build:
       context: .
@@ -65,6 +66,8 @@ services:
       - ./backend/requirements.txt:/app/requirements.txt
     environment:
       - PYTHONUNBUFFERED=1
+    networks:
+      - tiktok-network
     restart: unless-stopped
 
 volumes:
