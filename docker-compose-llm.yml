@@ -10,7 +10,7 @@ services:
     volumes:
       - ./app:/app/app
       - ./main.py:/app/main.py
-      - ./requirements.txt:/app/requirements.txt
+      - ./backend/requirements.txt:/app/requirements.txt
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
