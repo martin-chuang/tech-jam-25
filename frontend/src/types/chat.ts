@@ -6,6 +6,7 @@ export interface ChatMessage {
   files?: UploadedFile[]
   isStreaming?: boolean
   error?: string
+  thoughts?: string[]
 }
 
 export interface UploadedFile {
@@ -13,7 +14,8 @@ export interface UploadedFile {
   name: string
   size: number
   type: string
-  data: string | ArrayBuffer
+  data: File | string | ArrayBuffer
+  content?: string | ArrayBuffer // Processed content for display
   url?: string
 }
 

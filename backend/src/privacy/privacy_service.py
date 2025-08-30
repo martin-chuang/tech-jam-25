@@ -59,6 +59,22 @@ class PrivacyService:
         # Simulate processing - in real implementation this would call the actual ML pipeline
         combined_content = f"{anonymised_prompt}\n\n{anonymised_file_content}" if anonymised_file_content else anonymised_prompt
         
+        # Create a more intelligent response based on the content
+        if anonymised_file_content and "pdf" in anonymised_file_content.lower():
+            # Extract filename from markdown content if available
+            lines = anonymised_file_content.split('\n')
+            filename = "your document"
+            for line in lines:
+                if line.startswith('# ') and '.pdf' in line.lower():
+                    filename = line.replace('#', '').strip()
+                    break
+            
+            response_content = f"I can see you've uploaded a PDF document titled '{filename}'. I've processed the content and I'm ready to help you with any questions about this document or assist you with any related tasks."
+        elif anonymised_file_content:
+            response_content = f"I've processed your uploaded file(s) and converted them to a readable format. I can see the content includes information that might be helpful for your needs. How can I assist you with this information?"
+        else:
+            response_content = f"I understand you're asking: {anonymised_prompt}. I'm here to help you with this request."
+        
         # Mock response format as specified
         llm_response = [
             {
@@ -74,7 +90,7 @@ class PrivacyService:
                 "role": "tool"
             },
             {
-                "content": f"Based on your input: {combined_content}\n\n.",
+                "content": response_content,
                 "role": "ai"
             }
         ]

@@ -34,7 +34,7 @@ def process_chat_with_thoughts(chat_service, request_dto) -> Generator[str, None
         
         # Step 3: Anonymise request  
         yield _create_thought_event("Anonymising content...")
-        current_state, anonymised_prompt, anonymised_content = chat_service._transition_to_anonymised(request_dto.prompt or "", markdown_content)
+        current_state, anonymised_prompt, anonymised_content = chat_service._transition_to_anonymised(request_dto.prompt or "", request_dto.context or "", markdown_content)
         
         # Show anonymised content if different from original
         original_content = f"{request_dto.prompt or ''}\n\n{markdown_content}".strip()
@@ -58,12 +58,16 @@ def process_chat_with_thoughts(chat_service, request_dto) -> Generator[str, None
         current_state = chat_service._transition_to_success()
         yield _create_thought_event("Processing completed successfully")
         
-        # Final response - this is what the frontend will use as the actual answer
-        yield _create_final_response_event(final_response)
+        # Final response - stream the response content
+        yield _create_content_event(final_response)
+        
+        # Send done signal
+        yield "data: [DONE]\n\n"
         
     except Exception as e:
         chat_service._transition_to_failure()
         yield _create_error_event(f"Error: {str(e)}")
+        yield "data: [DONE]\n\n"
 
 def _create_thought_event(message: str) -> str:
     """Create SSE event for thought/state update."""
@@ -79,6 +83,14 @@ def _create_final_response_event(response: str) -> str:
     event_data = {
         "type": "final_response", 
         "response": response,
+        "timestamp": datetime.now().isoformat()
+    }
+    return f"data: {json.dumps(event_data)}\n\n"
+
+def _create_content_event(content: str) -> str:
+    """Create SSE event for content (expected by frontend)."""
+    event_data = {
+        "content": content,
         "timestamp": datetime.now().isoformat()
     }
     return f"data: {json.dumps(event_data)}\n\n"
