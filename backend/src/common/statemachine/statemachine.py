@@ -1,15 +1,9 @@
 """State machine implementation."""
 
 from typing import Dict, List, Optional
-from .istatemachine import (
-    IStateMachine,
-    StateMachineError,
-    StateMachineErrorCode,
-    Transition,
-    S,
-    E,
-    C,
-)
+
+from .istatemachine import (C, E, IStateMachine, S, StateMachineError,
+                            StateMachineErrorCode, Transition)
 
 
 class StateMachine(IStateMachine[S, E, C]):

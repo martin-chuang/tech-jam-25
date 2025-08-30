@@ -1,9 +1,10 @@
 """Logger interceptor middleware."""
 
-import time
 import logging
+import time
 from typing import Optional
-from flask import Flask, request, g
+
+from flask import Flask, g, request
 from werkzeug.wrappers import Response
 
 

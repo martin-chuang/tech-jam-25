@@ -1,8 +1,9 @@
-from sentence_transformers import util
-from rapidfuzz import fuzz
-from presidio_analyzer import AnalyzerEngine
 import re
 import uuid
+
+from presidio_analyzer import AnalyzerEngine
+from rapidfuzz import fuzz
+from sentence_transformers import util
 
 
 class PresidioEngine:

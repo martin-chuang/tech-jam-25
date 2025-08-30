@@ -1,7 +1,7 @@
 import numpy as np
-from sentence_transformers import SentenceTransformer
-from transformers import AutoTokenizer, AutoModel
 import torch
+from sentence_transformers import SentenceTransformer
+from transformers import AutoModel, AutoTokenizer
 
 
 class EmbeddingModel:

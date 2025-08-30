@@ -1,6 +1,7 @@
 """Chat routes blueprint using dependency injection."""
 
 from flask import Blueprint
+
 from ..common.container import container
 from .chat_controller import ChatController
 
@@ -14,8 +15,9 @@ def process_chat():
         controller = container.get(ChatController)
         return controller.process_chat()
     except ValueError:
-        from flask import jsonify, g
         from datetime import datetime
+
+        from flask import g, jsonify
 
         correlation_id = getattr(g, "correlation_id", "unknown")
 

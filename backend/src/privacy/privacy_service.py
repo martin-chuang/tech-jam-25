@@ -1,19 +1,20 @@
 """Privacy service for anonymisation and deanonymisation with retry logic."""
 
 import logging
+import os
 import re
 from typing import Dict, List, Optional, Tuple
+
+from dotenv import load_dotenv
+from langchain.chat_models import init_chat_model
+
+from ..common.utils.retry_utils import RetryUtils
 from .components.embedding_model.embedding_model import EmbeddingModel
+from .components.homomorphic_encryption.encryption_engine import HEManager
 from .components.presidio.presidio_engine import PresidioEngine
 from .components.rag.rag_engine import RAGEngine
-from .components.homomorphic_encryption.encryption_engine import HEManager
-from ..common.utils.retry_utils import RetryUtils
-from langchain.chat_models import init_chat_model
-from dotenv import load_dotenv
-import os
+
 # Load environment variables from .env file and set api key to environment variable
-
-
 
 
 # NEED TO REPLACE AND INTEGRATE WITH ML LOGIC but keep same function
@@ -22,8 +23,10 @@ class PrivacyService:
 
     def __init__(self):
         load_dotenv()
-        os.environ['GOOGLE_API_KEY'] = os.getenv("GOOGLE_API_KEY")
-        self.cloud_llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
+        os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
+        self.cloud_llm = init_chat_model(
+            "gemini-2.5-flash", model_provider="google_genai"
+        )
         self.embedding_model = EmbeddingModel(backend="mini-lm")
         self.presidio_engine = PresidioEngine(self.embedding_model)
         self.rag_engine = RAGEngine(self.embedding_model, self.cloud_llm)
@@ -66,24 +69,28 @@ class PrivacyService:
             List of conversation messages in the expected format
         """
         # Simulate processing - in real implementation this would call the actual ML pipeline
-        combined_content = f"{anonymised_prompt}\n\n{anonymised_file_content}" if anonymised_file_content else anonymised_prompt
-        
+        combined_content = (
+            f"{anonymised_prompt}\n\n{anonymised_file_content}"
+            if anonymised_file_content
+            else anonymised_prompt
+        )
+
         # Create a more intelligent response based on the content
         if anonymised_file_content and "pdf" in anonymised_file_content.lower():
             # Extract filename from markdown content if available
-            lines = anonymised_file_content.split('\n')
+            lines = anonymised_file_content.split("\n")
             filename = "your document"
             for line in lines:
-                if line.startswith('# ') and '.pdf' in line.lower():
-                    filename = line.replace('#', '').strip()
+                if line.startswith("# ") and ".pdf" in line.lower():
+                    filename = line.replace("#", "").strip()
                     break
-            
+
             response_content = f"I can see you've uploaded a PDF document titled '{filename}'. I've processed the content and I'm ready to help you with any questions about this document or assist you with any related tasks."
         elif anonymised_file_content:
             response_content = f"I've processed your uploaded file(s) and converted them to a readable format. I can see the content includes information that might be helpful for your needs. How can I assist you with this information?"
         else:
             response_content = f"I understand you're asking: {anonymised_prompt}. I'm here to help you with this request."
-        
+
         # Mock response format as specified
         llm_response = [
             {"content": anonymised_prompt, "role": "human"},
@@ -92,10 +99,7 @@ class PrivacyService:
                 "content": f"Source: {{'source': 'user_input'}}\nContent: {combined_content}",
                 "role": "tool",
             },
-            {
-                "content": response_content,
-                "role": "ai"
-            }
+            {"content": response_content, "role": "ai"},
         ]
 
         return llm_response

@@ -1,7 +1,7 @@
 """Dependency injection container for the application."""
 
 import logging
-from typing import Dict, Any, TypeVar, Type
+from typing import Any, Dict, Type, TypeVar
 
 T = TypeVar("T")
 
