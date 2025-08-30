@@ -76,4 +76,5 @@ def query_model_final(query, context):
     return message_chain
 
 if(__name__) == '__main__':
+    print("Running app")
     app.run(host="0.0.0.0", port = 5050, debug=True)

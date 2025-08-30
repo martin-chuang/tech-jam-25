@@ -6,7 +6,7 @@ services:
     container_name: llm-con-test
     env_file: .env
     ports:
-      - "5050:5000"
+      - "5050:5050"
     volumes:
       - ./app:/app/app
       - ./main.py:/app/main.py
