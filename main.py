@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from app.components.embedding_model.embedding_model import EmbeddingModel
 from app.components.presidio.presidio_engine import PresidioEngine
 from app.components.rag.rag_engine import RAGEngine
+from app.components.llm.llm_engine import LLMEngine
 from app.components.homomorphic_encryption.encryption_engine import HEManager
 from app.service.presidio_service import presidio_anonymize
 from app.service.rag_service import *
@@ -26,6 +27,7 @@ cloud_llm.invoke("Sing a ballad of LangChain.")
 embedding_model = EmbeddingModel(backend="mini-lm")
 presidio_engine = PresidioEngine(embedding_model)
 rag_engine = RAGEngine(embedding_model, cloud_llm)
+llm_engine = LLMEngine(cloud_llm)
 encryption_engine = HEManager()
 app = Flask(__name__)
 
@@ -115,7 +117,8 @@ def query_model_final(query, context):
     decrypted_context = encryption_engine.decrypt(context)
 
     # Query model with decrypted context (both uses anonymized data)
-    message_chain = rag_engine.query_model(anonymized_query, decrypted_context)
+    message_chain = llm_engine.query_model(anonymized_query, decrypted_context)
+    print("\n Main.py message_chain:", message_chain)
     return message_chain
 
 if(__name__) == '__main__':

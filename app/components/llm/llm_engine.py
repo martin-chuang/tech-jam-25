@@ -22,11 +22,11 @@ class LLMEngine:
         # Initialise graph with nodes and edges
     def initialize_graph(self):
         graph = StateGraph(MessagesState)
-        # tools = ToolNode(self.tools)
+        tools = ToolNode(self.tools)
 
         # Define nodes in graph
         graph.add_node(self.query_or_respond)
-        # graph.add_node(tools)
+        graph.add_node(tools)
         graph.add_node(self.generate_response)
 
         # Define edges and conditional flows
@@ -36,29 +36,29 @@ class LLMEngine:
             tools_condition,
             {END: END, "tools": "tools"},
         )
-        # graph.add_edge("tools", "generate_response")
+        graph.add_edge("tools", "generate_response")
         graph.add_edge("generate_response", END)
         graph = graph.compile(checkpointer=self.memory)
         return graph
     
     # # Initialise tools for graph nodes
-    # def initialize_tools(self):
-    #     tools = []
-    #     retrieve_context_tool = StructuredTool.from_function(
-    #         func=self.retrieve_context,
-    #         name="retrieve_context",
-    #         description="Retrieve relevant documents based on a query",
-    #         response_format="content_and_artifact",
-    #     )
-    #     tools.append(retrieve_context_tool)
-    #     return tools
+    def initialize_tools(self):
+        tools = []
+        # retrieve_context_tool = StructuredTool.from_function(
+        #     func=self.retrieve_context,
+        #     name="retrieve_context",
+        #     description="Retrieve relevant documents based on a query",
+        #     response_format="content_and_artifact",
+        # )
+        # tools.append(retrieve_context_tool)
+        return tools
     
     # Step 0: Generate an AIMessage that may include a tool-call to be sent.
     def query_or_respond(self, state: MessagesState):
         """Generate tool call for retrieval or respond."""
-        # llm_with_tools = self.llm.bind_tools(self.tools)
-        # response = llm_with_tools.invoke(state["messages"])
-        response = self.llm.invoke(state["messages"])
+        llm_with_tools = self.llm.bind_tools(self.tools)
+        response = llm_with_tools.invoke(state["messages"])
+        # response = self.llm.invoke(state["messages"])
         return {"messages": [response]}
 
     # # Tool 1 - retrieve context (replace with grade documents)
@@ -75,8 +75,43 @@ class LLMEngine:
     #     serialized = "[" + serialized + "]"
     #     return serialized, retrieved_docs
     
-    # Node 2: Generate response based on question and context
+    
+
     def generate_response(self, state: MessagesState):
+        """Generate an answer."""
+        GENERATE_PROMPT = (
+            "You are an assistant for question-answering tasks. "
+            "Use the following pieces of retrieved context to answer the question. "
+            "If you don't know the answer, just say that you don't know. "
+            "Use three sentences maximum and keep the answer concise.\n"
+            "Question: {question} \n"
+            "Context: {context}"
+        )
+        # Get generated ToolMessages (old)
+        recent_tool_messages = []
+        for message in reversed(state["messages"]):
+            if message.type == "tool":
+                recent_tool_messages.append(message)
+            else:
+                break
+        tool_messages = recent_tool_messages[::-1]
+
+        # New implementation
+        question = state["messages"][0].content
+        conversation_messages = [
+            message for message in state["messages"]
+            if message.type in ("human", "system") or (message.type == "ai" and not message.tool_calls)
+        ]
+        context = state["messages"][-1].content
+        print("\nQUESTION:", question)
+        print("\nCONTEXT:", context)
+        print("\nconversation_messages:", conversation_messages)
+        prompt = GENERATE_PROMPT.format(question=question, context=conversation_messages)
+        response = self.llm.invoke([{"role": "user", "content": prompt}])
+        return {"messages": [response]}
+
+    # Node 2: Generate response based on question and context
+    def generate_response_old(self, state: MessagesState):
         # Get generated ToolMessages
         recent_tool_messages = []
         for message in reversed(state["messages"]):
