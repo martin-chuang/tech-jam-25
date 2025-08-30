@@ -1,7 +1,6 @@
 version: "3.8"
 
 services:
-  # Flask Backend with Hot Reload
   backend:
     build:
       context: .
@@ -9,9 +8,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      # Mount source code for hot reload
       - ./backend:/app/backend
-      - ./requirements.txt:/app/requirements.txt
       - /app/backend/__pycache__
       - /app/backend/src/__pycache__
     env_file:
@@ -24,32 +21,6 @@ services:
     networks:
       - tiktok-network
     restart: unless-stopped
-
-  # PostgreSQL Database
-  # postgres:
-  #   image: postgres:15-alpine
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     - POSTGRES_DB=tiktok_techjam_dev
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #     - ./backend/db/init:/docker-entrypoint-initdb.d/
-  #   networks:
-  #     - tiktok-network
-  #   restart: unless-stopped
-
-  # encryption:
-  #   build:
-  #     context: ./app/components/homomorphic_encryption
-  #     dockerfile: Dockerfile
-  #   volumes:
-  #     - ./backend/app/components/homomorphic_encryption:/app
-  #   networks:
-  #     - tiktok-network
-  #   restart: unless-stopped
 
   # Redis for Caching
   redis:

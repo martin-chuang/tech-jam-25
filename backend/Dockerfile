@@ -25,8 +25,8 @@ RUN python -m venv /opt/venv
 # Make sure we use venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy backend requirements first for better caching
+COPY backend/requirements.txt .
 
 # Install Python dependencies in venv
 RUN pip install --upgrade pip && \
