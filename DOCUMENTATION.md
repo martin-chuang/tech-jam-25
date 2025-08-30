@@ -14,13 +14,13 @@ SafeGenAI addresses privacy concerns through multiple layers of protection:
 
 **Data Privacy & Anonymization**
 
-- Real-time PII (Personally Identifiable Information) detection and anonymization using Microsoft Presidio
+- Real-time PII (Personally Identifiable Information) detection and alias-aware anonymization using Microsoft Presidio
 - Advanced entity recognition with fuzzy matching and semantic similarity
 - Reversible anonymization for maintaining conversational context
 
 **Homomorphic Encryption**
 
-- Secure computation on encrypted data without decryption using Pyfhel (SEAL)
+- Secure computation on encrypted data using Pyfhel (SEAL)
 - BFV encryption scheme with 128-bit security level
 - Enables AI processing while data remains encrypted
 
@@ -129,7 +129,6 @@ SafeGenAI addresses privacy concerns through multiple layers of protection:
 - **LangGraph 0.6.6** - Agent workflow management
 - **Transformers 4.55.4** - Hugging Face transformers
 - **Sentence Transformers 5.1.0** - Semantic embeddings
-- **FAISS CPU 1.12.0** - Vector similarity search
 - **Presidio Analyzer 2.2.359** - PII detection
 - **Presidio Anonymizer 2.2.359** - Data anonymization
 - **Pyfhel** - Homomorphic encryption (SEAL wrapper)
@@ -199,10 +198,11 @@ The chat endpoint follows this privacy-preserving processing pipeline:
 2. **PII Detection**: Scans input for personally identifiable information
 3. **Anonymization**: Replaces PII with anonymized tokens
 4. **Encryption**: Encrypts anonymized data using homomorphic encryption
-5. **RAG Processing**: Retrieves relevant context from vector database
-6. **LLM Processing**: Generates response using Google Gemini 2.5 Flash
-7. **De-anonymization**: Restores original context while maintaining privacy
-8. **Response**: Returns processed response to client
+5. **RAG Context Retrieval**: Retrieves relevant context_ids from vector database, and their respective encrypted context from redis cache
+6. **Decryption**: Decrypts retrieved context into its anonymised version for LLM Processing
+7. **LLM Processing**: Generates response using Google Gemini 2.5 Flash
+8. **De-anonymization**: Restores original context while maintaining privacy
+9. **Response**: Returns processed response to client
 
 ## Project Structure
 
