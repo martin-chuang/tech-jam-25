@@ -116,9 +116,8 @@ class RAGEngine:
     #         text = doc.page_content
     #     self.vector_store.add_documents(documents=all_splits)
 
-    def store_embeddings(self, embedding_list):
-        for obj in embedding_list:
-            self.vector_store.add_embedding(obj["embedding"], obj["id"])
+    def store_embedding(self, embedding_vector_key, value):
+        self.vector_store.add_embedding(embedding_vector_key, value)
         # if self.vector_store is None:
         #     embedding_list = [(obj["id"], obj["embedding"]) for obj in embedding_list]
         #     self.vector_store = FAISS.from_embeddings(

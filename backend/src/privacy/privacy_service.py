@@ -3,8 +3,17 @@
 import logging
 import re
 from typing import Dict, List, Optional, Tuple
-
+from .components.embedding_model.embedding_model import EmbeddingModel
+from .components.presidio.presidio_engine import PresidioEngine
+from .components.rag.rag_engine import RAGEngine
+from .components.homomorphic_encryption.encryption_engine import HEManager
 from ..common.utils.retry_utils import RetryUtils
+from langchain.chat_models import init_chat_model
+from dotenv import load_dotenv
+import os
+# Load environment variables from .env file and set api key to environment variable
+
+
 
 
 # NEED TO REPLACE AND INTEGRATE WITH ML LOGIC but keep same function
@@ -12,6 +21,13 @@ class PrivacyService:
     """Service for handling privacy operations like anonymisation."""
 
     def __init__(self):
+        load_dotenv()
+        os.environ['GOOGLE_API_KEY'] = os.getenv("GOOGLE_API_KEY")
+        self.cloud_llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
+        self.embedding_model = EmbeddingModel(backend="mini-lm")
+        self.presidio_engine = PresidioEngine(self.embedding_model)
+        self.rag_engine = RAGEngine(self.embedding_model, self.cloud_llm)
+        self.encryption_engine = HEManager()
         self.logger = logging.getLogger(__name__)
         # PII pattern mappings for anonymisation
         self._pii_mappings: Dict[str, str] = {}
@@ -30,22 +46,10 @@ class PrivacyService:
         Returns:
             Tuple of (anonymised_prompt, anonymised_file_content)
         """
-        combined_text = f"{prompt}\n\n{file_content}" if file_content else prompt
-        anonymised_combined = self.anonymise_text_with_retry(combined_text)
+        context = f"{prompt}\n\n{file_content}" if file_content else prompt
 
-        if not anonymised_combined:
-            self.logger.warning("Anonymisation failed, using original text")
-            return prompt, file_content
-
-        # Split back into prompt and file content
-        if file_content:
-            parts = anonymised_combined.split("\n\n", 1)
-            if len(parts) == 2:
-                return parts[0], parts[1]
-            else:
-                return anonymised_combined, ""
-        else:
-            return anonymised_combined, ""
+        self.rag_engine.analyze_text(context)
+        anonymized_context = self.rag_engine.anonymise_text(context)
 
     def transition_process(
         self, anonymised_prompt: str, anonymised_file_content: str = ""
