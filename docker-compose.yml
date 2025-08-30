@@ -66,10 +66,14 @@ services:
       - ./backend/requirements.txt:/app/requirements.txt
     environment:
       - PYTHONUNBUFFERED=1
+    depends_on:
+      - redis
     networks:
       - tiktok-network
     restart: unless-stopped
+    command: python main.py
 
+  
 volumes:
   postgres_data:
   redis_data:

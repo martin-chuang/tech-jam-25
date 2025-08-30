@@ -1,9 +1,11 @@
+version: "3.8"
+
 services:
   rag-llm:
     build:
       context: .
       dockerfile: ./app/Dockerfile
-    container_name: llm-con
+    container_name: llm-con-test
     env_file: .env
     ports:
       - "5050:5050"
@@ -13,4 +15,26 @@ services:
       - ./requirements.txt:/app/requirements.txt
     environment:
       - PYTHONUNBUFFERED=1
+    depends_on:
+      - redis
+    networks:
+      - llm-network
     restart: unless-stopped
+
+  redis:
+      image: redis:7-alpine
+      ports:
+        - "6379:6379"
+      volumes:
+        - redis_data:/data
+      networks:
+        - llm-network
+      restart: unless-stopped
+      command: redis-server --appendonly yes
+
+  volumes:
+    redis_data:
+
+  networks:
+    llm-network:
+      driver: bridge

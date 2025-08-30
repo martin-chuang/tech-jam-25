@@ -6,11 +6,12 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY ../backend/requirements.txt ./requirements.txt
+COPY backend/requirements.txt ./requirements.txt
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY app ./app
 COPY main.py .
+COPY .env .
 
 EXPOSE 5050
 
