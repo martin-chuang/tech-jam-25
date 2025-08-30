@@ -147,15 +147,15 @@ SafeGenAI represents a comprehensive solution to AI privacy challenges, combinin
 
 ## How it works
 
-**Step 1:** - The user provides context (files or text) and enters a query in the respective input boxes.
-**Step 2:** - Personally Identifiable Information (PII) is detected and anonymized using the alias-aware anonymization engine.
-**Step 3:** - The anonymized context is encrypted using the homomorphic encryption engine.
-**Step 4:** - Semantic embeddings of the anonymized context are stored in the vector database, while the encrypted context is stored in the local Redis cache. This separation ensures embeddings and raw encrypted data are kept distinct.
-**Step 5** - The anonymized query is embedded into vectors, which are used to retrieve the most relevant context_ids from the vector database. These IDs are then used to fetch the corresponding encrypted context from Redis.
-**Step 6** - The encrypted context is decrypted back into its anonymized form.
-**Step 7** - The anonymized query and anonymized context are passed to the cloud LLM for processing.
-**Step 8** - The LLM response is de-anonymized using the saved entity mappings.
-**Step 9** - The final, de-anonymized response is returned to the user.
+- **Step 1:** - The user provides context (files or text) and enters a query in the respective input boxes.
+- **Step 2:** - Personally Identifiable Information (PII) is detected and anonymized using the alias-aware anonymization engine.
+- **Step 3:** - The anonymized context is encrypted using the homomorphic encryption engine.
+- **Step 4:** - Semantic embeddings of the anonymized context are stored in the vector database, while the encrypted context is stored in the local Redis cache. This separation ensures embeddings and raw encrypted data are kept distinct.
+- **Step 5** - The anonymized query is embedded into vectors, which are used to retrieve the most relevant context_ids from the vector database. These IDs are then used to fetch the corresponding encrypted context from Redis.
+- **Step 6** - The encrypted context is decrypted back into its anonymized form.
+- **Step 7** - The anonymized query and anonymized context are passed to the cloud LLM for processing.
+- **Step 8** - The LLM response is de-anonymized using the saved entity mappings.
+- **Step 9** - The final, de-anonymized response is returned to the user.
 
 ## Future Deployment Plans
 
