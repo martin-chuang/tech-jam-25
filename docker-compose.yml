@@ -60,10 +60,6 @@ services:
     env_file: .env
     ports:
       - "5050:5050"
-    volumes:
-      - ./app:/app/app
-      - ./main.py:/app/main.py
-      - ./backend/requirements.txt:/app/requirements.txt
     environment:
       - PYTHONUNBUFFERED=1
     depends_on:
