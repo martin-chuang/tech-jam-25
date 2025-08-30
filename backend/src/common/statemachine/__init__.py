@@ -1,12 +1,8 @@
 """State machine module initialization."""
 
-from .istatemachine import (
-    IStateMachine,
-    StateMachineError,
-    StateMachineErrorCode,
-    Transition,
-    StateMachineEventHandler,
-)
+from .istatemachine import (IStateMachine, StateMachineError,
+                            StateMachineErrorCode, StateMachineEventHandler,
+                            Transition)
 from .statemachine import StateMachine
 
 __all__ = [

@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: ./backend/Dockerfile
     ports:
-      - "5000:5000"
+      - "5051:5000"
     volumes:
       - ./backend:/app/backend
       - /app/backend/__pycache__
@@ -51,7 +51,25 @@ services:
     networks:
       - tiktok-network
     restart: unless-stopped
+  
+  rag-llm:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+    container_name: llm-con
+    env_file: .env
+    ports:
+      - "5050:5050"
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - redis
+    networks:
+      - tiktok-network
+    restart: unless-stopped
+    command: python main.py
 
+  
 volumes:
   postgres_data:
   redis_data:

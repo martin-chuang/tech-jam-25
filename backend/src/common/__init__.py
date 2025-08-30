@@ -1,14 +1,9 @@
 """Common module initialization."""
 
-from . import config
-from . import filters
-from . import interceptors
-from . import middlewares
-from . import statemachine
-from . import validators
-from . import utils
-from .container import DIContainer, container
+from . import (config, filters, interceptors, middlewares, statemachine, utils,
+               validators)
 from .app_factory import create_app
+from .container import DIContainer, container
 
 __all__ = [
     "config",

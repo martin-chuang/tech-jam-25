@@ -1,5 +1,5 @@
-from Pyfhel import Pyfhel, PyCtxt
 import numpy as np
+from Pyfhel import PyCtxt, Pyfhel
 
 
 class HEManager:

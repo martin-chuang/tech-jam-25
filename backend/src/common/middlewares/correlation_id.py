@@ -2,8 +2,8 @@
 
 import uuid
 from typing import Optional
-from flask import Flask, request, g
 
+from flask import Flask, g, request
 
 CORRELATION_ID_HEADER = "X-Correlation-ID"
 

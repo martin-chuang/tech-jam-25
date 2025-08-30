@@ -1,6 +1,7 @@
 """Option 1"""
 
 import time
+
 from sseclient import SSEClient
 
 
@@ -61,8 +62,9 @@ if __name__ == "__main__":
 
 """Option 2"""
 
-import requests
 import time
+
+import requests
 
 
 def stream_thoughts_client(url, max_retries=2):
@@ -94,6 +96,7 @@ def stream_thoughts_client(url, max_retries=2):
 # display_status function remains the same
 
 import time
+
 import requests
 
 
@@ -151,11 +154,12 @@ if __name__ == "__main__":
 
 """Option 3"""
 
-import requests
 import time
-from backend.src.common.utils.retry_utils import (
-    retry,
-)  # this "retry" might need to be adjusted based on actual imported
+
+import requests
+
+from backend.src.common.utils.retry_utils import \
+    retry  # this "retry" might need to be adjusted based on actual imported
 
 SSE_URL = "http://localhost:5000/stream-thoughts"
 

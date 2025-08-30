@@ -1,8 +1,8 @@
 """Validators module initialization."""
 
-from .validator_interface import ValidatorInterface
 from .base_validator import BaseValidator
 from .validator_chain import ValidatorChain
+from .validator_interface import ValidatorInterface
 
 __all__ = [
     "ValidatorInterface",

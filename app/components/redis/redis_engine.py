@@ -2,9 +2,12 @@
 
 import json
 import logging
-from typing import Optional, Any, Dict
+from typing import Any, Dict, Optional
+
 import redis
+
 from ..common.config.config_loader import ConfigLoader
+
 
 class RedisEngine:
     """Redis service for caching and session management."""

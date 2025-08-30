@@ -1,15 +1,16 @@
 """Chat service with dependency injection and state machine transitions."""
 
 import logging
-import openai
 import os
-from typing import Generator, List, Dict
+from typing import Dict, Generator, List
 
-from .dtos.request.chat_request_dto import ChatRequestDto
-from .dtos.response.chat_response_dto import ChatResponseDto
+import openai
+
 from ..common.statemachine.chat.chat_state_machine import ChatStatus
 from ..common.statemachine.statemachine import StateMachine
 from ..common.utils.file_converter import FileConverter
+from .dtos.request.chat_request_dto import ChatRequestDto
+from .dtos.response.chat_response_dto import ChatResponseDto
 
 
 class ChatService:
@@ -21,12 +22,12 @@ class ChatService:
         self.file_converter = FileConverter()
 
         # Create separate validator chains for different data types
-        from .validators.chat_validators import PromptValidator, FileValidator
         from ..common.validators import ValidatorChain
-        
+        from .validators.chat_validators import FileValidator, PromptValidator
+
         self.prompt_validator = ValidatorChain()
         self.prompt_validator.add_validator(PromptValidator())
-        
+
         self.file_validator = ValidatorChain()
         self.file_validator.add_validator(FileValidator())
 
@@ -48,8 +49,12 @@ class ChatService:
             )
 
             # Step 3: Anonymise request (pass prompt and file content)
-            current_state, anonymised_prompt, anonymised_content = self._transition_to_anonymised(request_dto.prompt, request_dto.context, markdown_content)
-            
+            current_state, anonymised_prompt, anonymised_content = (
+                self._transition_to_anonymised(
+                    request_dto.prompt, request_dto.context, markdown_content
+                )
+            )
+
             # Step 4: Process with privacy service
             current_state, llm_response = self._transition_to_processed(
                 anonymised_prompt, anonymised_content
@@ -91,7 +96,7 @@ class ChatService:
     def _transition_to_validated(self, request_dto: ChatRequestDto) -> str:
         """Transition to VALIDATED state using validation chain."""
         self.logger.info("State transition: PENDING → VALIDATED")
-        
+
         # Validate prompt (allow empty prompt if files are present)
         if not request_dto.files and not request_dto.context:
             # No files uploaded, prompt is required
@@ -103,15 +108,17 @@ class ChatService:
             if request_dto.prompt and request_dto.prompt.strip():
                 # Only validate non-empty prompts for basic checks (not required check)
                 if len(request_dto.prompt) > 10000:
-                    raise ValueError("Prompt validation failed: Prompt cannot exceed 10,000 characters")
-        
+                    raise ValueError(
+                        "Prompt validation failed: Prompt cannot exceed 10,000 characters"
+                    )
+
         # Validate files if present
         if request_dto.files:
             for file in request_dto.files:
                 file_error = self.file_validator.validate(file)
                 if file_error:
                     raise ValueError(f"File validation failed: {file_error}")
-        
+
         self.logger.info("Request validation successful")
         return ChatStatus.VALIDATED
 
@@ -133,16 +140,20 @@ class ChatService:
             f"Files processed to markdown: {len(markdown_content)} characters"
         )
         return "FILE_PROCESSED", markdown_content
-    
-    def _transition_to_anonymised(self, prompt: str, context: str, file_content: str) -> tuple[str, str, str]:
+
+    def _transition_to_anonymised(
+        self, prompt: str, context: str, file_content: str
+    ) -> tuple[str, str, str]:
         """Transition to ANONYMISED state using privacy service transition."""
         self.logger.info("State transition: FILE_PROCESSED → ANONYMISED")
-        
+
         combined_content = f"{context}\n\n{file_content}".strip()
-        
+
         if self.privacy_service:
             try:
-                anonymised_prompt, anonymised_content = self.privacy_service.transition_anonymise(prompt, combined_content)
+                anonymised_prompt, anonymised_content = (
+                    self.privacy_service.transition_anonymise(prompt, combined_content)
+                )
                 self.logger.info("Successfully anonymised content")
                 return ChatStatus.ANONYMISED, anonymised_prompt, anonymised_content
             except Exception as e:
@@ -150,8 +161,10 @@ class ChatService:
 
         # Fallback to original content
         return ChatStatus.ANONYMISED, prompt, combined_content
-    
-    def _transition_to_processed(self, anonymised_prompt: str, anonymised_content: str) -> tuple[str, List[Dict]]:
+
+    def _transition_to_processed(
+        self, anonymised_prompt: str, anonymised_content: str
+    ) -> tuple[str, List[Dict]]:
         """Transition to PROCESSED state using privacy service transition."""
         self.logger.info("State transition: ANONYMISED → PROCESSED")
 

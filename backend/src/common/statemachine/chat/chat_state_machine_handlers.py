@@ -1,10 +1,10 @@
 """Chat state machine handlers."""
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from ..istatemachine import StateMachineEventHandler
 from .chat_state_machine_events import ChatStatusEvent
-
 
 # Type alias for chat state handler
 ChatStateHandler = StateMachineEventHandler[str, str, Dict[str, Any]]

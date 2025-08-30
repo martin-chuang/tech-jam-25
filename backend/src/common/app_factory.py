@@ -1,23 +1,24 @@
 """Flask application factory with middleware and dependency injection."""
 
-from flask import Flask, request, jsonify, g
-from flask_cors import CORS
-from datetime import datetime
-import uuid
 import logging
+import uuid
+from datetime import datetime
 
-from .container import container
+from flask import Flask, g, jsonify, request
+from flask_cors import CORS
+
 from .config.config_loader import ConfigLoader
-from .middlewares.correlation_id import CorrelationIdMiddleware
+from .container import container
 from .filters.global_exception_filter import GlobalExceptionFilter
+from .middlewares.correlation_id import CorrelationIdMiddleware
 
 
 def setup_dependencies():
     """Setup dependency injection container."""
     try:
-        from ..privacy.privacy_service import PrivacyService
-        from ..chat.chat_service import ChatService
         from ..chat.chat_controller import ChatController
+        from ..chat.chat_service import ChatService
+        from ..privacy.privacy_service import PrivacyService
         from ..redis.redis_service import RedisService
 
         # Register services

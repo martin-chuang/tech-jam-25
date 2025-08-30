@@ -1,18 +1,21 @@
-from flask import Flask, request, jsonify
-from app.components.embedding_model.embedding_model import EmbeddingModel
-from app.components.presidio.presidio_engine import PresidioEngine
-from app.components.rag.rag_engine import RAGEngine
-from app.components.homomorphic_encryption.encryption_engine import HEManager
-# from app.components.redis.redis_engine import RedisEngine
-from app.components.llm.llm_engine import LLMEngine
+import os
 
 # Initialise cloud LLM Gemini
 from dotenv import load_dotenv
-import os
+from flask import Flask, jsonify, request
+
+from app.components.embedding_model.embedding_model import EmbeddingModel
+from app.components.homomorphic_encryption.encryption_engine import HEManager
+# from app.components.redis.redis_engine import RedisEngine
+from app.components.llm.llm_engine import LLMEngine
+from app.components.presidio.presidio_engine import PresidioEngine
+from app.components.rag.rag_engine import RAGEngine
+
 # Load environment variables from .env file and set api key to environment variable
 load_dotenv()
 from langchain.chat_models import init_chat_model
-os.environ['GOOGLE_API_KEY'] = os.getenv("GOOGLE_API_KEY")
+
+os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 
 # Dependency Injection
 cloud_llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
@@ -24,22 +27,22 @@ llm_engine = LLMEngine(cloud_llm)
 encryption_engine = HEManager()
 app = Flask(__name__)
 
+
 # API endpoints
-@app.route('/')
+@app.route("/")
 def hello_world():
-    response = {
-        "status": "success",
-        "body": 'Hello this is flask'
-    }
+    response = {"status": "success", "body": "Hello this is flask"}
     return jsonify(response), 200
 
-@app.route('/query-model', methods=['POST'])
+
+@app.route("/query-model", methods=["POST"])
 def query_model():
     data = request.json
     context = data.get("context", "")
     query = data.get("query", "")
     message_chain = query_model_final(query, context)
     return message_chain, 200
+
 
 def query_model_final(query, context):
     # Preprocess context
@@ -51,7 +54,7 @@ def query_model_final(query, context):
     embedding_obj_list = rag_engine.generate_key_and_embeddings(documents)
     for embedding_obj in embedding_obj_list:
         # Store anonymized context in vector DB
-        rag_engine.store_embeddings(embedding_obj['embedding'], embedding_obj['id'])
+        rag_engine.store_embeddings(embedding_obj["embedding"], embedding_obj["id"])
         # Store encrypter context in redis
         # redis_engine.set(embedding_obj['id'], embedding_obj['context'])
 
@@ -75,6 +78,7 @@ def query_model_final(query, context):
     message_chain = llm_engine.query_model(anonymized_query, decrypted_context_str)
     return message_chain
 
-if(__name__) == '__main__':
+
+if (__name__) == "__main__":
     print("Running app")
-    app.run(host="0.0.0.0", port = 5050, debug=True)
+    app.run(host="0.0.0.0", port=5050, debug=True)

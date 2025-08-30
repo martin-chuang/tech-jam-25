@@ -1,18 +1,19 @@
-from langchain_core.vectorstores import InMemoryVectorStore
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_core.documents import Document
-from typing import Any, Annotated
-from typing_extensions import List, TypedDict
-from langgraph.graph import START, MessagesState, StateGraph, END
-from langchain import hub
-from langchain_core.tools import tool, StructuredTool
-from langgraph.prebuilt import ToolNode, tools_condition
-from langchain_core.messages import SystemMessage
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.prebuilt import create_react_agent
 import uuid
+from typing import Annotated, Any
+
+from langchain import hub
 # import faiss
 from langchain_community.vectorstores.faiss import FAISS
+from langchain_core.documents import Document
+from langchain_core.messages import SystemMessage
+from langchain_core.tools import StructuredTool, tool
+from langchain_core.vectorstores import InMemoryVectorStore
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, MessagesState, StateGraph
+from langgraph.prebuilt import ToolNode, create_react_agent, tools_condition
+from typing_extensions import List, TypedDict
+
 
 # Define state for application
 class State(TypedDict):
@@ -20,6 +21,7 @@ class State(TypedDict):
     context: List[Document]
     answer: str
     messages: List[Any]
+
 
 class VectorStore:
     def __init__(self):
@@ -33,11 +35,13 @@ class VectorStore:
     def similarity_search_by_embedding(self, query_embedding, top_k=2):
         # simple cosine similarity
         import numpy as np
+
         vecs = np.array(self.vectors)
         query = np.array(query_embedding)
         sims = vecs @ query / (np.linalg.norm(vecs, axis=1) * np.linalg.norm(query))
         top_indices = np.argsort(-sims)[:top_k]
         return [self.doc_ids[i] for i in top_indices]
+
 
 class RAGEngine:
     def __init__(self, embedding_model, llm):
@@ -121,7 +125,7 @@ class RAGEngine:
         # if self.vector_store is None:
         #     embedding_list = [(obj["id"], obj["embedding"]) for obj in embedding_list]
         #     self.vector_store = FAISS.from_embeddings(
-        #         embedding_list, 
+        #         embedding_list,
         #         self.embedding_model  # required here
         #     )
         # else:

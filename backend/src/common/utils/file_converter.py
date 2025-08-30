@@ -1,8 +1,9 @@
 """File converter utility for converting various file types to markdown."""
 
-import logging
 import io
+import logging
 from typing import Optional
+
 from werkzeug.datastructures import FileStorage
 
 try:
@@ -75,24 +76,24 @@ class FileConverter:
             # Check if file is still readable
             if file.closed:
                 return f"# {file.filename}\n\n*Error processing PDF: File is closed.*"
-            
+
             # Save current position and reset to beginning
             current_pos = file.tell()
             file.seek(0)
-            
+
             # Read file content into bytes
             file_bytes = file.read()
-            
+
             # Restore original position
             try:
                 file.seek(current_pos)
             except:
                 # If we can't seek back, that's ok for this use case
                 pass
-            
+
             if not file_bytes:
                 return f"# {file.filename}\n\n*Error processing PDF: No content found.*"
-            
+
             # Open PDF from bytes
             pdf_doc = fitz.open(stream=file_bytes, filetype="pdf")
 

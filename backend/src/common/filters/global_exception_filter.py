@@ -1,11 +1,12 @@
 """Global exception filter for Flask application."""
 
+import logging
 import traceback
 from datetime import datetime
-from typing import Dict, Any, Optional
-from flask import request, jsonify, Flask
+from typing import Any, Dict, Optional
+
+from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
-import logging
 
 
 class GlobalExceptionFilter:

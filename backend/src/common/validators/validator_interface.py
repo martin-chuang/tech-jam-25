@@ -1,7 +1,7 @@
 """Validator interface definition."""
 
 from abc import ABC, abstractmethod
-from typing import TypeVar, Optional
+from typing import Optional, TypeVar
 
 T = TypeVar("T")
 

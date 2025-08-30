@@ -1,6 +1,7 @@
 """Validator chain implementation for combining multiple validators."""
 
 from typing import List, Optional, TypeVar
+
 from .validator_interface import ValidatorInterface
 
 T = TypeVar("T")

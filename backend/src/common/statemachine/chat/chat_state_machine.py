@@ -1,6 +1,7 @@
 """Chat state machine configuration and transitions."""
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from ..istatemachine import Transition
 from .chat_state_machine_events import ChatStatusEvent
 from .chat_state_machine_handlers import ChatStateHandlers

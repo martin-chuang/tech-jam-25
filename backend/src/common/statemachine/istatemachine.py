@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import TypeVar, Generic, Callable, Optional, Any
+from typing import Any, Callable, Generic, Optional, TypeVar
 
 
 class StateMachineErrorCode(Enum):
