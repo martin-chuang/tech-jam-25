@@ -1,8 +1,8 @@
-# PromptGuard - TikTok Tech Jam 2025
+# SafeGenAI - TikTok Tech Jam 2025
 
 ## Project Overview
 
-**PromptGuard** is an advanced privacy-preserving AI chat application designed to address the growing concerns about data privacy and security in AI systems. Built for the TikTok Tech Jam 2025 under Topic 7: Privacy for AI, PromptGuard implements cutting-edge privacy-preserving techniques to ensure user data remains secure while providing powerful AI-driven conversational capabilities.
+**SafeGenAI** is an advanced privacy-preserving AI chat application designed to address the growing concerns about data privacy and security in AI systems. Built for the TikTok Tech Jam 2025 under Topic 7: Privacy for AI, SafeGenAI implements cutting-edge privacy-preserving techniques to ensure user data remains secure while providing powerful AI-driven conversational capabilities.
 
 ### Problem Statement
 
@@ -10,17 +10,17 @@ As AI technologies rapidly integrate into our daily lives, concerns about privac
 
 ### Features and Functionality
 
-PromptGuard addresses privacy concerns through multiple layers of protection:
+SafeGenAI addresses privacy concerns through multiple layers of protection:
 
 **Data Privacy & Anonymization**
 
-- Real-time PII (Personally Identifiable Information) detection and anonymization using Microsoft Presidio
+- Real-time PII (Personally Identifiable Information) detection and alias-aware anonymization using Microsoft Presidio
 - Advanced entity recognition with fuzzy matching and semantic similarity
 - Reversible anonymization for maintaining conversational context
 
 **Homomorphic Encryption**
 
-- Secure computation on encrypted data without decryption using Pyfhel (SEAL)
+- Secure computation on encrypted data using Pyfhel (SEAL)
 - BFV encryption scheme with 128-bit security level
 - Enables AI processing while data remains encrypted
 
@@ -88,7 +88,6 @@ PromptGuard addresses privacy concerns through multiple layers of protection:
 **Infrastructure APIs:**
 
 - **Redis** - Caching and session management
-- **FAISS** - Vector similarity search
 
 ### Assets Used in the Project
 
@@ -129,7 +128,6 @@ PromptGuard addresses privacy concerns through multiple layers of protection:
 - **LangGraph 0.6.6** - Agent workflow management
 - **Transformers 4.55.4** - Hugging Face transformers
 - **Sentence Transformers 5.1.0** - Semantic embeddings
-- **FAISS CPU 1.12.0** - Vector similarity search
 - **Presidio Analyzer 2.2.359** - PII detection
 - **Presidio Anonymizer 2.2.359** - Data anonymization
 - **Pyfhel** - Homomorphic encryption (SEAL wrapper)
@@ -145,19 +143,27 @@ PromptGuard addresses privacy concerns through multiple layers of protection:
 - **Requests 2.32.5** - HTTP client library
 - **RapidFuzz 3.13.0** - Fast string matching
 
-PromptGuard represents a comprehensive solution to AI privacy challenges, combining state-of-the-art privacy-preserving technologies with user-friendly design to create a secure and efficient AI chat experience.
+SafeGenAI represents a comprehensive solution to AI privacy challenges, combining state-of-the-art privacy-preserving technologies with user-friendly design to create a secure and efficient AI chat experience.
 
 ## How it works
 
-To be filled up
+- **Step 1** - The user provides context (files or text) and enters a query in the respective input boxes.
+- **Step 2** - Personally Identifiable Information (PII) is detected and anonymized using the alias-aware anonymization engine.
+- **Step 3** - The anonymized context is encrypted using the homomorphic encryption engine.
+- **Step 4** - Semantic embeddings of the anonymized context are stored in the vector database, while the encrypted context is stored in the local Redis cache. This separation ensures embeddings and raw encrypted data are kept distinct.
+- **Step 5** - The anonymized query is embedded into vectors, which are used to retrieve the most relevant context_ids from the vector database. These IDs are then used to fetch the corresponding encrypted context from Redis.
+- **Step 6** - The encrypted context is decrypted back into its anonymized form.
+- **Step 7** - The anonymized query and anonymized context are passed to the cloud LLM for processing.
+- **Step 8** - The LLM response is de-anonymized using the saved entity mappings.
+- **Step 9** - The final, de-anonymized response is returned to the user.
 
 ## Future Deployment Plans
 
-PromptGuard is designed with scalability and enterprise deployment in mind. The following cloud infrastructure architecture demonstrates our planned production deployment strategy using AWS services across multiple availability zones for high availability and security.
+SafeGenAI is designed with scalability and enterprise deployment in mind. The following cloud infrastructure architecture demonstrates our planned production deployment strategy using AWS services across multiple availability zones for high availability and security.
 
 ![Cloud Infrastructure Architecture](./cloud-architecture.PNG)
 
-The proposed AWS architecture leverages a multi-tier approach with dedicated security zones. User traffic flows through CloudFront CDN and Route 53 for global distribution and DNS management. The application layer utilizes ECS with Application Load Balancers (ALB) across multiple availability zones (AZ1 and AZ2) for fault tolerance. Critical components include EFS for shared file storage, Bedrock for AI model hosting, and comprehensive security measures with IAM identity management, CloudWatch monitoring, CloudTrail audit logging, and GuardDuty threat detection. This infrastructure ensures PromptGuard can scale to handle enterprise workloads while maintaining the highest standards of data privacy and security. They are also isolated in different subnets and the ALB will have ingress and egress access to the internet via the internet gateway through a public subnet and the private subnets will communicate between themselves via respective interface endpoints or the NAT gateway if the components need to update their packages.
+The proposed AWS architecture leverages a multi-tier approach with dedicated security zones. User traffic flows through CloudFront CDN and Route 53 for global distribution and DNS management. The application layer utilizes ECS with Application Load Balancers (ALB) across multiple availability zones (AZ1 and AZ2) for fault tolerance. Critical components include EFS for shared file storage, Bedrock for AI model hosting, and comprehensive security measures with IAM identity management, CloudWatch monitoring, CloudTrail audit logging, and GuardDuty threat detection. This infrastructure ensures SafeGenAI can scale to handle enterprise workloads while maintaining the highest standards of data privacy and security. They are also isolated in different subnets and the ALB will have ingress and egress access to the internet via the internet gateway through a public subnet and the private subnets will communicate between themselves via respective interface endpoints or the NAT gateway if the components need to update their packages.
 
 ## API Documentation
 
@@ -199,10 +205,11 @@ The chat endpoint follows this privacy-preserving processing pipeline:
 2. **PII Detection**: Scans input for personally identifiable information
 3. **Anonymization**: Replaces PII with anonymized tokens
 4. **Encryption**: Encrypts anonymized data using homomorphic encryption
-5. **RAG Processing**: Retrieves relevant context from vector database
-6. **LLM Processing**: Generates response using Google Gemini 2.5 Flash
-7. **De-anonymization**: Restores original context while maintaining privacy
-8. **Response**: Returns processed response to client
+5. **RAG Context Retrieval**: Retrieves relevant context_ids from vector database, and their respective encrypted context from redis cache
+6. **Decryption**: Decrypts retrieved context into its anonymised version for LLM Processing
+7. **LLM Processing**: Generates response using Google Gemini 2.5 Flash
+8. **De-anonymization**: Restores original context while maintaining privacy
+9. **Response**: Returns processed response to client
 
 ## Project Structure
 
