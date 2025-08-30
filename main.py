@@ -95,6 +95,7 @@ def query_model():
     message_chain = rag_engine.query_model(query, decrypted_context)
     return message_chain, 200
 
+@app.route('/query-model-final', methods=['POST'])
 def query_model_final(query, context):
     # Preprocess context
     rag_engine.analyze_text(context)
