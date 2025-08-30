@@ -17,30 +17,30 @@ services:
     env_file:
       - .env.docker
     environment:
-      # - DB_HOST=postgres
+      - DB_HOST=postgres
       - REDIS_HOST=redis
     depends_on:
-      # - postgres
+      - postgres
       - redis
     networks:
       - tiktok-network
     restart: unless-stopped
 
   # PostgreSQL Database
-  # postgres:
-  #   image: postgres:15-alpine
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     - POSTGRES_DB=tiktok_techjam_dev
-  #     - POSTGRES_USER=postgres
-  #     - POSTGRES_PASSWORD=postgres
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #     - ./backend/db/init:/docker-entrypoint-initdb.d/
-  #   networks:
-  #     - tiktok-network
-  #   restart: unless-stopped
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=tiktok_techjam_dev
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/db/init:/docker-entrypoint-initdb.d/
+    networks:
+      - tiktok-network
+    restart: unless-stopped
 
   encryption:
     build:

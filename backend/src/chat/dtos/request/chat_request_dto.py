@@ -10,6 +10,7 @@ class ChatRequestDto:
     """Chat request data transfer object."""
     
     prompt: str
+    context: Optional[str] = None
     files: Optional[List[FileStorage]] = None
     
     def __post_init__(self):

@@ -8,7 +8,7 @@ import { cn } from '@/utils/cn'
 interface ChatWindowProps {
   messages: ChatMessageType[]
   isLoading: boolean
-  onSendMessage: (message: string, files: UploadedFile[]) => void
+  onSendMessage: (message: string, context: string, files: UploadedFile[]) => void
   onStopGeneration: () => void
   className?: string
 }
@@ -31,8 +31,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = (message: string, files: UploadedFile[]) => {
-    onSendMessage(message, files)
+  const handleSendMessage = (message: string, context: string, files: UploadedFile[]) => {
+    onSendMessage(message, context, files)
     fileUpload.clearFiles()
   }
 

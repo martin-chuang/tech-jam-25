@@ -46,7 +46,7 @@ class ChatService:
             current_state, markdown_content = self._transition_to_file_processed(request_dto)
             
             # Step 3: Anonymise request (pass prompt and file content)
-            current_state, anonymised_prompt, anonymised_content = self._transition_to_anonymised(request_dto.prompt, markdown_content)
+            current_state, anonymised_prompt, anonymised_content = self._transition_to_anonymised(request_dto.prompt, request_dto.context, markdown_content)
             
             # Step 4: Process with privacy service
             current_state, llm_response = self._transition_to_processed(anonymised_prompt, anonymised_content)
@@ -82,7 +82,7 @@ class ChatService:
         self.logger.info("State transition: PENDING → VALIDATED")
         
         # Validate prompt (allow empty prompt if files are present)
-        if not request_dto.files or len(request_dto.files) == 0:
+        if not request_dto.files and not request_dto.context:
             # No files uploaded, prompt is required
             prompt_error = self.prompt_validator.validate(request_dto.prompt)
             if prompt_error:
@@ -119,20 +119,22 @@ class ChatService:
         self.logger.info(f"Files processed to markdown: {len(markdown_content)} characters")
         return "FILE_PROCESSED", markdown_content
     
-    def _transition_to_anonymised(self, prompt: str, file_content: str) -> tuple[str, str, str]:
+    def _transition_to_anonymised(self, prompt: str, context: str, file_content: str) -> tuple[str, str, str]:
         """Transition to ANONYMISED state using privacy service transition."""
         self.logger.info("State transition: FILE_PROCESSED → ANONYMISED")
         
+        full_prompt = f"{context}\n\n{prompt}".strip()
+        
         if self.privacy_service:
             try:
-                anonymised_prompt, anonymised_content = self.privacy_service.transition_anonymise(prompt or "", file_content)
+                anonymised_prompt, anonymised_content = self.privacy_service.transition_anonymise(full_prompt, file_content)
                 self.logger.info("Successfully anonymised content")
                 return ChatStatus.ANONYMISED, anonymised_prompt, anonymised_content
             except Exception as e:
                 self.logger.warning(f"Could not anonymise content: {e}")
         
         # Fallback to original content
-        return ChatStatus.ANONYMISED, prompt or "", file_content
+        return ChatStatus.ANONYMISED, full_prompt, file_content
     
     def _transition_to_processed(self, anonymised_prompt: str, anonymised_content: str) -> tuple[str, List[Dict]]:
         """Transition to PROCESSED state using privacy service transition."""

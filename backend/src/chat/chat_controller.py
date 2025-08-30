@@ -35,6 +35,7 @@ class ChatController:
             if request.content_type and 'multipart/form-data' in request.content_type:
                 # FormData request from frontend
                 prompt = request.form.get('message', '').strip()
+                context = request.form.get('context', '').strip()
                 sessionId = request.form.get('sessionId', '')
                 files = []
                 
@@ -49,12 +50,13 @@ class ChatController:
                 # JSON request (fallback)
                 data = request.get_json() or {}
                 prompt = data.get('prompt', '').strip()
+                context = data.get('context', '').strip()
                 sessionId = data.get('sessionId', '')
                 files = data.get('files', [])
                 
                 self.logger.info(f"[{correlation_id}] JSON request - prompt: {prompt[:50]}...")
             
-            request_dto = ChatRequestDto(prompt=prompt, files=files)
+            request_dto = ChatRequestDto(prompt=prompt, context=context, files=files)
             
             # Always return streaming response (as frontend expects SSE)
             self.logger.info(f"[{correlation_id}] Processing as streaming request")

@@ -34,7 +34,7 @@ def process_chat_with_thoughts(chat_service, request_dto) -> Generator[str, None
         
         # Step 3: Anonymise request  
         yield _create_thought_event("Anonymising content...")
-        current_state, anonymised_prompt, anonymised_content = chat_service._transition_to_anonymised(request_dto.prompt or "", markdown_content)
+        current_state, anonymised_prompt, anonymised_content = chat_service._transition_to_anonymised(request_dto.prompt or "", request_dto.context or "", markdown_content)
         
         # Show anonymised content if different from original
         original_content = f"{request_dto.prompt or ''}\n\n{markdown_content}".strip()

@@ -5,7 +5,7 @@ import { FileUpload } from './FileUpload'
 import { cn } from '@/utils/cn'
 
 interface ChatInputProps {
-  onSendMessage: (message: string, files: UploadedFile[]) => void
+  onSendMessage: (message: string, context: string, files: UploadedFile[]) => void
   isLoading: boolean
   files: UploadedFile[]
   isUploading: boolean
@@ -26,6 +26,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   getFileInfo,
 }) => {
   const [message, setMessage] = useState('')
+  const [context, setContext] = useState('')
   const [showFileUpload, setShowFileUpload] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -33,11 +34,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     e.preventDefault()
     
     const trimmedMessage = message.trim()
-    if (!trimmedMessage && files.length === 0) return
+    const trimmedContext = context.trim()
+    if (!trimmedMessage && !trimmedContext && files.length === 0) return
     if (isLoading || isUploading) return
 
-    onSendMessage(trimmedMessage, files)
+    onSendMessage(trimmedMessage, trimmedContext, files)
     setMessage('')
+    setContext('')
     setShowFileUpload(false)
     
     if (textareaRef.current) {
@@ -65,7 +68,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     setShowFileUpload(!showFileUpload)
   }
 
-  const canSend = (message.trim() || files.length > 0) && !isLoading && !isUploading
+  const canSend = (message.trim() || context.trim() || files.length > 0) && !isLoading && !isUploading
 
   return (
     <div className="bg-chat-bg p-4">
@@ -98,6 +101,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         </button>
 
         <div className="flex-1 relative flex items-center">
+          <textarea
+            value={context}
+            onChange={(e) => setContext(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Enter context here..."
+            className={cn(
+              'w-full px-4 py-3 pr-12 rounded-xl resize-none shadow-sm',
+              'bg-chat-surface border-2 border-chat-border text-chat-text',
+              'placeholder-chat-text-secondary',
+              'focus:outline-none focus:ring-2 focus:ring-chat-accent focus:border-chat-accent transition-all',
+              'disabled:opacity-50 disabled:cursor-not-allowed'
+            )}
+            disabled={isLoading}
+            rows={1}
+            style={{ minHeight: '48px' }}
+          />
           <textarea
             ref={textareaRef}
             value={message}

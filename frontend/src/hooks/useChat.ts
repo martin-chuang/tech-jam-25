@@ -75,8 +75,8 @@ export const useChat = () => {
   );
 
   const sendMessage = useCallback(
-    async (content: string, files: UploadedFile[]) => {
-      if (!content.trim() && files.length === 0) return;
+    async (content: string, context: string, files: UploadedFile[]) => {
+      if (!content.trim() && !context.trim() && files.length === 0) return;
 
       setError(null);
       setIsLoading(true);
@@ -124,6 +124,7 @@ export const useChat = () => {
         // Create FormData for the request
         const formData = new FormData();
         formData.append("message", content);
+        formData.append("context", context);
         formData.append("sessionId", currentSession.id);
 
         files.forEach((file, index) => {
