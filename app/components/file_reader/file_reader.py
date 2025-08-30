@@ -1,4 +1,5 @@
-import fitz # PyMuPDF
+import fitz  # PyMuPDF
+
 
 class FileReader:
     def readPdfFile(self, file_path):

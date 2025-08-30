@@ -1,4 +1,2 @@
-
-
 class User:
     userid: string

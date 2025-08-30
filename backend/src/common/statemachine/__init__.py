@@ -5,15 +5,15 @@ from .istatemachine import (
     StateMachineError,
     StateMachineErrorCode,
     Transition,
-    StateMachineEventHandler
+    StateMachineEventHandler,
 )
 from .statemachine import StateMachine
 
 __all__ = [
-    'IStateMachine',
-    'StateMachine',
-    'StateMachineError',
-    'StateMachineErrorCode',
-    'Transition',
-    'StateMachineEventHandler'
+    "IStateMachine",
+    "StateMachine",
+    "StateMachineError",
+    "StateMachineErrorCode",
+    "Transition",
+    "StateMachineEventHandler",
 ]

@@ -11,12 +11,14 @@ from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
+
 # Define state for application
 class State(TypedDict):
     question: str
     context: List[Document]
     answer: str
     messages: List[Any]
+
 
 class RAGEngine:
     def __init__(self, embedding_model, llm):
@@ -27,7 +29,9 @@ class RAGEngine:
         # self.agent_llm = create_react_agent(llm, self.tools, checkpointer=self.memory)
         # self.prompt_template = hub.pull("rlm/rag-prompt")
         self.vector_store = InMemoryVectorStore(embedding_model)
-        self.text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=500, chunk_overlap=50
+        )
         # self.graph = self.initialize_graph()
 
     # Initialise graph with nodes and edges
@@ -54,7 +58,7 @@ class RAGEngine:
         graph.add_edge("generate_response", END)
         graph = graph.compile(checkpointer=self.memory)
         return graph
-    
+
     # Initialise tools for graph nodes
     def initialize_tools(self):
         tools = []
@@ -66,7 +70,7 @@ class RAGEngine:
         )
         tools.append(retrieve_context_tool)
         return tools
-    
+
     # Convert raw text to Document format
     def text_to_document(self, text):
         return Document(page_content=text, metadata={"source": "user_input"})
@@ -90,25 +94,28 @@ class RAGEngine:
         """
         Retrieve relevant documents based on a query. Outputs serialized context and documents.
         """
-        retrieved_docs = self.vector_store.similarity_search(query, k = 2)
+        retrieved_docs = self.vector_store.similarity_search(query, k=2)
 
         serialized = ",".join(
-            ("{{source: {}, text: {}}}".format(doc.metadata['source'], doc.page_content))
+            (
+                "{{source: {}, text: {}}}".format(
+                    doc.metadata["source"], doc.page_content
+                )
+            )
             for doc in retrieved_docs
         )
         serialized = "[" + serialized + "]"
         return serialized, retrieved_docs
 
-
     def rewrite_question(self, state: MessagesState):
         """Rewrite the original user question."""
         REWRITE_PROMPT = (
-        "Look at the input and try to reason about the underlying semantic intent / meaning.\n"
-        "Here is the initial question:"
-        "\n ------- \n"
-        "{question}"
-        "\n ------- \n"
-        "Formulate an improved question:"
+            "Look at the input and try to reason about the underlying semantic intent / meaning.\n"
+            "Here is the initial question:"
+            "\n ------- \n"
+            "{question}"
+            "\n ------- \n"
+            "Formulate an improved question:"
         )
         messages = state["messages"]
         question = messages[0].content
@@ -139,8 +146,10 @@ class RAGEngine:
         )
 
         conversation_messages = [
-            message for message in state["messages"]
-            if message.type in ("human", "system") or (message.type == "ai" and not message.tool_calls)
+            message
+            for message in state["messages"]
+            if message.type in ("human", "system")
+            or (message.type == "ai" and not message.tool_calls)
         ]
         prompt = [SystemMessage(system_message_content)] + conversation_messages
         response = self.llm.invoke(prompt)
@@ -154,29 +163,35 @@ class RAGEngine:
         for step in self.graph.stream(
             {"messages": [{"role": "user", "content": query}]},
             stream_mode="values",
-            config=config
+            config=config,
         ):
             message = step["messages"][-1]
             content = message.content
             if message.type == "ai":
                 if message.tool_calls:
                     content = ",".join(
-                        ("{{tool: {}, query: {}}}".format(tool['name'], tool['args']['query']))
+                        (
+                            "{{tool: {}, query: {}}}".format(
+                                tool["name"], tool["args"]["query"]
+                            )
+                        )
                         for tool in message.tool_calls
                     )
                     content = "[" + content + "]"
-                if message.usage_metadata and 'total_tokens' in message.usage_metadata:
-                    tokens += message.usage_metadata['total_tokens']
-                    print("Tokens used in this step:", message.usage_metadata['total_tokens'])
+                if message.usage_metadata and "total_tokens" in message.usage_metadata:
+                    tokens += message.usage_metadata["total_tokens"]
+                    print(
+                        "Tokens used in this step:",
+                        message.usage_metadata["total_tokens"],
+                    )
                     print("Total tokens so far:", tokens)
-                
-            message_chain.append({
-                "role": message.type,     # e.g. "human", "ai", "tool"
-                "content": content
-            })
+
+            message_chain.append(
+                {"role": message.type, "content": content}  # e.g. "human", "ai", "tool"
+            )
         message_chain[-1]["tokens"] = tokens  # Add tokens info at the end of the chain
         return message_chain
-    
+
     # def query_agent_model(self, query):
     #     message_chain = []
     #     config = {"configurable": {"thread_id": "abc123"}}
@@ -199,7 +214,7 @@ class RAGEngine:
     #                 tokens += message.usage_metadata['total_tokens']
     #                 print("Tokens used in this step:", message.usage_metadata['total_tokens'])
     #                 print("Total tokens so far:", tokens)
-                
+
     #         message_chain.append({
     #             "role": message.type,     # e.g. "human", "ai", "tool"
     #             "content": content

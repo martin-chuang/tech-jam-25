@@ -11,15 +11,17 @@ from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 
+
 class LLMEngine:
     def __init__(self, llm):
         self.llm = llm
         self.memory = MemorySaver()
-        # self.tools = self.initialize_tools()
+        self.tools = self.initialize_tools()
         self.prompt_template = hub.pull("rlm/rag-prompt")
         self.graph = self.initialize_graph()
 
         # Initialise graph with nodes and edges
+
     def initialize_graph(self):
         graph = StateGraph(MessagesState)
         tools = ToolNode(self.tools)
@@ -40,7 +42,7 @@ class LLMEngine:
         graph.add_edge("generate_response", END)
         graph = graph.compile(checkpointer=self.memory)
         return graph
-    
+
     # # Initialise tools for graph nodes
     def initialize_tools(self):
         tools = []
@@ -52,7 +54,7 @@ class LLMEngine:
         # )
         # tools.append(retrieve_context_tool)
         return tools
-    
+
     # Step 0: Generate an AIMessage that may include a tool-call to be sent.
     def query_or_respond(self, state: MessagesState):
         """Generate tool call for retrieval or respond."""
@@ -74,8 +76,6 @@ class LLMEngine:
     #     )
     #     serialized = "[" + serialized + "]"
     #     return serialized, retrieved_docs
-    
-    
 
     def generate_response(self, state: MessagesState):
         """Generate an answer."""
@@ -99,15 +99,19 @@ class LLMEngine:
         # New implementation
         question = state["messages"][0].content
         conversation_messages = [
-            message for message in state["messages"]
-            if message.type in ("human", "system") or (message.type == "ai" and not message.tool_calls)
+            message
+            for message in state["messages"]
+            if message.type in ("human", "system")
+            or (message.type == "ai" and not message.tool_calls)
         ]
         context = state["messages"][-1].content
         print("\nQUESTION:", question)
         print("\nCONTEXT:", context)
         print("\nconversation_messages:", conversation_messages)
         # prompt = GENERATE_PROMPT.format(question=question, context=context)
-        prompt = GENERATE_PROMPT.format(question=question, context=conversation_messages)
+        prompt = GENERATE_PROMPT.format(
+            question=question, context=conversation_messages
+        )
         response = self.llm.invoke([{"role": "user", "content": prompt}])
         return {"messages": [response]}
 
@@ -134,13 +138,15 @@ class LLMEngine:
         )
 
         conversation_messages = [
-            message for message in state["messages"]
-            if message.type in ("human", "system") or (message.type == "ai" and not message.tool_calls)
+            message
+            for message in state["messages"]
+            if message.type in ("human", "system")
+            or (message.type == "ai" and not message.tool_calls)
         ]
         prompt = [SystemMessage(system_message_content)] + conversation_messages
         response = self.llm.invoke(prompt)
         return {"messages": [response]}
-    
+
     # Execute the conversation pipeline with query
     def query_model(self, query, context):
         message_chain = []
@@ -149,25 +155,31 @@ class LLMEngine:
         for step in self.graph.stream(
             {"messages": [{"role": "user", "query": query, "context": context}]},
             stream_mode="values",
-            config=config
+            config=config,
         ):
             message = step["messages"][-1]
             content = message.content
             if message.type == "ai":
                 if message.tool_calls:
                     content = ",".join(
-                        ("{{tool: {}, query: {}}}".format(tool['name'], tool['args']['query']))
+                        (
+                            "{{tool: {}, query: {}}}".format(
+                                tool["name"], tool["args"]["query"]
+                            )
+                        )
                         for tool in message.tool_calls
                     )
                     content = "[" + content + "]"
-                if message.usage_metadata and 'total_tokens' in message.usage_metadata:
-                    tokens += message.usage_metadata['total_tokens']
-                    print("Tokens used in this step:", message.usage_metadata['total_tokens'])
+                if message.usage_metadata and "total_tokens" in message.usage_metadata:
+                    tokens += message.usage_metadata["total_tokens"]
+                    print(
+                        "Tokens used in this step:",
+                        message.usage_metadata["total_tokens"],
+                    )
                     print("Total tokens so far:", tokens)
-                
-            message_chain.append({
-                "role": message.type,     # e.g. "human", "ai", "tool"
-                "content": content
-            })
+
+            message_chain.append(
+                {"role": message.type, "content": content}  # e.g. "human", "ai", "tool"
+            )
         message_chain[-1]["tokens"] = tokens  # Add tokens info at the end of the chain
         return message_chain

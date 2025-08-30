@@ -7,7 +7,7 @@ from typing import Optional
 @dataclass
 class ChatResponseDto:
     """DTO for chat response containing only the deanonymised response."""
-    
+
     response: str
     """The deanonymised AI response."""
 
@@ -15,7 +15,7 @@ class ChatResponseDto:
 @dataclass
 class ErrorResponseDto:
     """DTO for error responses."""
-    
+
     statusCode: int
     timestamp: str
     correlationId: str

@@ -15,10 +15,7 @@ DATABASE_URL = (
 
 # SQLAlchemy engine
 engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,
-    echo=config.debug
+    DATABASE_URL, pool_pre_ping=True, pool_recycle=300, echo=config.debug
 )
 
 # Session factory
@@ -26,6 +23,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base class for all models
 Base = declarative_base()
+
 
 @contextmanager
 def get_db_session() -> Generator:
@@ -53,15 +51,15 @@ def get_db():
 # Database connection constants
 class DatabaseConstants:
     """Database related constants."""
-    
+
     MAX_CONNECTIONS = 20
     MIN_CONNECTIONS = 5
     CONNECTION_TIMEOUT = 30
     QUERY_TIMEOUT = 60
-    
+
     # Migration paths
     MIGRATIONS_PATH = "src/db/migrations"
-    
+
     # Entity imports (to be added as needed)
     ENTITIES = [
         # Add entity classes here as they are created

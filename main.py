@@ -15,10 +15,12 @@ from app.service.anonymize_encryptor_service import AnonymizeEncryptor
 # Initialise cloud LLM Gemini
 from dotenv import load_dotenv
 import os
+
 # Load environment variables from .env file and set api key to environment variable
 load_dotenv()
 
 from langchain.chat_models import init_chat_model
+
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 cloud_llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
 cloud_llm.invoke("Sing a ballad of LangChain.")
@@ -29,44 +31,41 @@ presidio_engine = PresidioEngine(embedding_model)
 rag_engine = RAGEngine(embedding_model, cloud_llm)
 llm_engine = LLMEngine(cloud_llm)
 encryption_engine = HEManager()
-anon_encryptor = AnonymizeEncryptor()
+anon_encryptor = AnonymizeEncryptor(presidio_engine, encryption_engine)
 app = Flask(__name__)
 
+
 # API endpoints
-@app.route('/')
+@app.route("/")
 def hello_world():
-    response = {
-        "status": "success",
-        "body": 'Hello this is flask'
-    }
+    response = {"status": "success", "body": "Hello this is flask"}
     return jsonify(response), 200
 
-@app.route('/test-llm', methods=['POST'])
+
+@app.route("/test-llm", methods=["POST"])
 def test_llm():
     data = request.json
     prompt = data.get("body", "")
     # response = cloud_llm.invoke(prompt)
-    response = cloud_llm.invoke("Hello world, this is a test. Just reply with 'Hello from Gemini'.")
+    response = cloud_llm.invoke(
+        "Hello world, this is a test. Just reply with 'Hello from Gemini'."
+    )
     print(response)
-    result = {
-        "status": "success",
-        "body": response.content
-    }
+    result = {"status": "success", "body": response.content}
     return jsonify(result), 200
 
-@app.route('/anonymize_encrypt', methods=['POST'])
+
+@app.route("/anonymize_encrypt", methods=["POST"])
 def anonymize_and_encrypt_text():
     data = request.json
     text = data.get("body", "")
-    anonymized_text = presidio_anonymize(text, presidio_engine) # Execute service layer
+    anonymized_text = presidio_anonymize(text, presidio_engine)  # Execute service layer
     encrypted_text = encryption_engine.encrypt(anonymized_text)
-    response = {
-        "status": "success",
-        "body": encrypted_text
-    }
+    response = {"status": "success", "body": encrypted_text}
     return jsonify(response), 200
 
-@app.route('/consume-context', methods=['POST'])
+
+@app.route("/consume-context", methods=["POST"])
 def consume_context():
     data = request.json
     text = data.get("body", "")
@@ -77,13 +76,11 @@ def consume_context():
     processed_text = anon_encryptor.anonymize_and_encrypt(text)
     doc = text_to_document(processed_text, rag_engine)
     add_to_vector_db(doc, rag_engine)
-    response = {
-        "status": "success",
-        "body": "Context added to vector database"
-    }
+    response = {"status": "success", "body": "Context added to vector database"}
     return jsonify(response), 200
 
-@app.route('/query-model', methods=['POST'])
+
+@app.route("/query-model", methods=["POST"])
 def query_model():
     data = request.json
     query = data.get("body", "")
@@ -96,13 +93,14 @@ def query_model():
     message_chain = rag_engine.query_model(query, decrypted_context)
     return message_chain, 200
 
-@app.route('/query-model-final', methods=['POST'])
+
+@app.route("/query-model-final", methods=["POST"])
 def query_model_final(query, context):
     # Preprocess context
     presidio_engine.analyze_text(context)
     anonymized_context = presidio_engine.anonymise_text(context)
     encrypted_context = encryption_engine.encrypt(anonymized_context)
-        # Store encrypted context in vector DB
+    # Store encrypted context in vector DB
     doc = rag_engine.text_to_document(encrypted_context)
     rag_engine.store_documents([doc])
 
@@ -123,5 +121,6 @@ def query_model_final(query, context):
     print("\n Main.py message_chain:", message_chain)
     return message_chain
 
-if(__name__) == '__main__':
+
+if (__name__) == "__main__":
     app.run(debug=True)

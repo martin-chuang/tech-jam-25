@@ -1,5 +1,6 @@
 from app.service.presidio_service import presidio_anonymize
 
+
 class AnonymizeEncryptor:
     def __init__(self, presidio_engine, encryption_engine):
         self.presidio_engine = presidio_engine

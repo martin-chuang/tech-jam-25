@@ -5,6 +5,7 @@ from enum import Enum
 
 class ChatStatusEvent(Enum):
     """Chat processing status events."""
+
     VALIDATE_SUCCESS = "VALIDATE_SUCCESS"
     VALIDATE_FAILURE = "VALIDATE_FAILURE"
     ANONYMISE_SUCCESS = "ANONYMISE_SUCCESS"
