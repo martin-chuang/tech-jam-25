@@ -6,9 +6,12 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-RUN pip install --upgrade pip
-RUN pip install cython pyfhel
+COPY requirements.txt .
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-COPY . .
+COPY app ./app
+COPY main.py .
 
-CMD ["python", "he_utils.py"]
+EXPOSE 5000
+
+CMD ["python", "main.py"]

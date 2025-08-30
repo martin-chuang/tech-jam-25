@@ -6,7 +6,7 @@ from app.components.llm.llm_engine import LLMEngine
 from app.components.homomorphic_encryption.encryption_engine import HEManager
 from app.service.presidio_service import presidio_anonymize
 from app.service.rag_service import *
-from app.service.anonymize_encryptor_service import anonymize_and_encrypt
+from app.service.anonymize_encryptor_service import AnonymizeEncryptor
 
 # Initialize cloud LLM (currently using local Ollama model)
 # from langchain_ollama import ChatOllama
@@ -19,7 +19,7 @@ import os
 load_dotenv()
 
 from langchain.chat_models import init_chat_model
-os.environ['GOOGLE_API_KEY'] = os.getenv("GOOGLE_API_KEY")
+os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 cloud_llm = init_chat_model("gemini-2.5-flash", model_provider="google_genai")
 cloud_llm.invoke("Sing a ballad of LangChain.")
 
@@ -29,6 +29,7 @@ presidio_engine = PresidioEngine(embedding_model)
 rag_engine = RAGEngine(embedding_model, cloud_llm)
 llm_engine = LLMEngine(cloud_llm)
 encryption_engine = HEManager()
+anon_encryptor = AnonymizeEncryptor()
 app = Flask(__name__)
 
 # API endpoints
@@ -73,7 +74,7 @@ def consume_context():
     # text = "Jones is friends with Martin."
     # text = "Jones likes to play football on 5th avenue."
 
-    processed_text = anonymize_and_encrypt(text)
+    processed_text = anon_encryptor.anonymize_and_encrypt(text)
     doc = text_to_document(processed_text, rag_engine)
     add_to_vector_db(doc, rag_engine)
     response = {

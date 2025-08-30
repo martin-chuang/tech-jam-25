@@ -42,16 +42,6 @@ services:
   #     - tiktok-network
   #   restart: unless-stopped
 
-  encryption:
-    build:
-      context: ./app/components/homomorphic_encryption
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend/app/components/homomorphic_encryption:/app
-    networks:
-      - tiktok-network
-    restart: unless-stopped
-
   # Redis for Caching
   redis:
     image: redis:7-alpine
