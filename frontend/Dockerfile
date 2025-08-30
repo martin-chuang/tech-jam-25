@@ -1,4 +1,4 @@
-# Development Dockerfile for React frontend with hot reload
+# Development Dockerfile for React frontend with Vite hot reload
 FROM node:18-alpine
 
 # Set working directory
@@ -19,5 +19,5 @@ EXPOSE 3000
 # Set environment for development
 ENV NODE_ENV=development
 
-# Start the development server with hot reload (Vite)
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+# Start the Vite development server with hot reload
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3000"]
