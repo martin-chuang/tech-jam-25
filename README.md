@@ -43,6 +43,7 @@ Step 4: Go to local main branch and merge from branch_name<br>
 git checkout main
 git fetch origin
 git merge origin/branch_name
+git pull origin
 ```
 
 Step 5: Push new changes to remote main<br>

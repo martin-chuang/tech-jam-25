@@ -5,7 +5,7 @@ from app.components.rag.rag_engine import RAGEngine
 from app.service.presidio_service import presidio_anonymize
 from app.service.rag_service import *
 
-# # Initialize cloud LLM (currently using local Ollama model)
+# Initialize cloud LLM (currently using local Ollama model)
 # from langchain_ollama import ChatOllama
 # cloud_llm = ChatOllama(model="phi3:latest")
 
@@ -63,9 +63,6 @@ def anonymize_text():
 def consume_context():
     data = request.json
     text = data.get("body", "")
-    # text = "His name is Mr. Jones, Jones Bond and his phone number is 212-555-5555."
-    # text = "Jones is friends with Martin."
-    # text = "Jones likes to play football on 5th avenue."
     doc = text_to_document(text, rag_engine)
     add_to_vector_db(doc, rag_engine)
     response = {
@@ -78,18 +75,15 @@ def consume_context():
 def query_model():
     data = request.json
     query = data.get("body", "")
-    # query = "What is Jones' phone number?"
-    state = invoke_conversation(query, rag_engine)
-    print(f"""
-          Question: {query}\n
-          Answer: {state['answer']}\n
-          Context: {state['context']}
-""")
-    response = {
-        "status": "success",
-        "body": state['answer']
-    }
-    return jsonify(response), 200
+    message_chain = rag_engine.query_model(query)
+    return message_chain
+
+@app.route('/query-agent-model', methods=['POST'])
+def query_agent_model():
+    data = request.json
+    query = data.get("body", "")
+    message_chain = rag_engine.query_agent_model(query)
+    return message_chain
 
 if(__name__) == '__main__':
     app.run(debug=True)
