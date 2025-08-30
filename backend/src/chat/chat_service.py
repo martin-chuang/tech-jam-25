@@ -123,18 +123,18 @@ class ChatService:
         """Transition to ANONYMISED state using privacy service transition."""
         self.logger.info("State transition: FILE_PROCESSED → ANONYMISED")
         
-        full_prompt = f"{context}\n\n{prompt}".strip()
+        combined_content = f"{context}\n\n{file_content}".strip()
         
         if self.privacy_service:
             try:
-                anonymised_prompt, anonymised_content = self.privacy_service.transition_anonymise(full_prompt, file_content)
+                anonymised_prompt, anonymised_content = self.privacy_service.transition_anonymise(prompt, combined_content)
                 self.logger.info("Successfully anonymised content")
                 return ChatStatus.ANONYMISED, anonymised_prompt, anonymised_content
             except Exception as e:
                 self.logger.warning(f"Could not anonymise content: {e}")
         
         # Fallback to original content
-        return ChatStatus.ANONYMISED, full_prompt, file_content
+        return ChatStatus.ANONYMISED, prompt, combined_content
     
     def _transition_to_processed(self, anonymised_prompt: str, anonymised_content: str) -> tuple[str, List[Dict]]:
         """Transition to PROCESSED state using privacy service transition."""
